@@ -1,0 +1,62 @@
+
+
+.commands {
+	width:150px;
+	float:right;
+	//padding:10px;
+}
+
+
+.clearAll {
+	clear:both;
+}
+
+
+
+.errorStyle {
+	font-size:10pt;
+	color:#CC0000;
+	font-style:italic;
+}
+
+
+.right-align {
+	text-align:right
+}
+
+
+.logo {
+	font: 3em normal Georgia, 'Times New Roman', Times, serif;
+	text-align:center;
+	padding-bottom: 10px;
+}
+.logo span { color: #006600; }
+.logo small{
+	font: 0.2em normal Verdana, Arial, Helvetica, sans-serif;
+	text-transform:uppercase;
+	letter-spacing: 1.5em;
+	display: block;
+	color: #333;
+}
+
+/*#selectAlert {
+	display:none;
+	position:relative;
+}*/
+
+/* Menu styling */
+
+
+
+#footer {
+margin-left:0px;
+margin-top: 50px;
+border-top: 1px solid;
+text-align: center;
+background:#111111 none repeat scroll 0 0;
+float:left;
+width:100%;
+
+
+
+

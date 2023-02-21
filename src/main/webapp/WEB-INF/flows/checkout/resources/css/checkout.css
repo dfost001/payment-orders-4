@@ -1,0 +1,35 @@
+@charset "UTF-8";
+.container {
+	padding-bottom:2%;
+}
+.container-fluid {
+	padding-bottom:2%;
+}
+.error{
+	color:#FF3333;
+	font-size:9pt;
+	font-weight:bold
+}
+.info {
+	color:#3333FF;
+	font-size:10pt;
+	font-weight:450
+}
+ .divLogin {
+	border: 2px solid #006600;
+	width: 600px;
+	height: 300px;
+	margin: 75px auto auto auto;
+	padding: 50px;
+    }
+
+   .divLogin label {
+  	font-size: 16pt;
+	font-weight: 400
+   }
+
+   .loginCaption {
+	text-align: center;
+	font-size:16pt;
+	/*color:#3333FF*/
+   }

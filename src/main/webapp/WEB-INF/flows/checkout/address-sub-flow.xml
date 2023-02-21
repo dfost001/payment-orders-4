@@ -1,0 +1,75 @@
+<flow xmlns="http://www.springframework.org/schema/webflow"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/webflow
+             http://www.springframework.org/schema/webflow/spring-webflow-2.0.xsd">
+            
+
+    
+   <input name="addressIn"  />   
+    
+   <!-- 
+   <input name="addressIn"  value="flowScope.address" /> 
+   -->
+   
+   <input name="myFlowAttrs" />   
+   
+   <input name="originalCustomer" />	
+   
+       
+    <on-start>	
+		 <evaluate expression="cloneUtil.clone(addressIn)" result="flowScope.address" />		   
+    </on-start> 
+   
+   
+	<view-state id="addressView" view="customerFormSub.jsp" model="address">
+	
+	    <on-entry>
+	       <evaluate expression="myFlowAttrs.removeSessionMessages(flowRequestContext)"/>	  
+	       <evaluate expression="evalApplicationState.setViewScopeComparisonAttrs(flowRequestContext)" />   
+	       <evaluate expression="supportedValidationImpl.getStates()" result="flowScope.states" />	       
+	    </on-entry>	
+	    
+	    <on-render>
+	        <evaluate expression="webflowDebug.evalCartOnRender(flowRequestContext, cart, myFlowAttrs)" />
+	        <evaluate expression="evalApplicationState.evalState(flowRequestContext)" />	
+	        <evaluate expression="myFlowAttrs.preserveMessagesIntoSession(flowRequestContext, messageContext)"   />	             
+	    </on-render>  
+	    	   
+		<transition on="submitCustomerInfo" to="updated" />		
+		
+		<transition on="cancelCustomerInfo" to="cancelled" bind="false" />
+		
+		<transition on="home" to="home" bind="false" />
+		
+		<transition on="cart" to="cart" bind="false" />
+		
+	</view-state>
+	
+	<end-state id="updated">
+	  <on-entry>
+	     <evaluate expression="myFlowAttrs.removeSessionMessages(flowRequestContext)"/>
+	  </on-entry>		 
+	  <output name="postalAddress" value="flowScope.address" />	  
+	</end-state>		
+	
+	<end-state id="cancelled" >  	
+	  <on-entry>
+	     <evaluate expression="cloneUtil.clone(originalCustomer)"  result="requestScope.customer" />
+	     <evaluate expression="myFlowAttrs.removeSessionMessages(flowRequestContext)"/>
+	  </on-entry> 	
+	  <output name="customerCopy" value="customer" />	
+	</end-state>
+	
+	<end-state id="home" >
+	   <on-entry>
+	      <evaluate expression="myFlowAttrs.removeSessionMessages(flowRequestContext)"/>
+	   </on-entry>
+	</end-state>
+	
+	<end-state id="cart">
+	    <on-entry>
+	      <evaluate expression="myFlowAttrs.removeSessionMessages(flowRequestContext)"/>
+	    </on-entry>
+	</end-state>
+             
+</flow>

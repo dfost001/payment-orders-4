@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<flow xmlns="http://www.springframework.org/schema/webflow"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/webflow
+     http://www.springframework.org/schema/webflow/spring-webflow-2.0.xsd"
+     start-state="throwEmptyCart"> 
+         
+     <var name="myFlowAttrs" class="com.mycompany.hosted.checkoutFlow.MyFlowAttributes" />  
+     
+     <input name="ERR_GET_DETAIL"  />  
+     
+     <input name="ERR_ON_CAPTURE"  />
+     
+     <input name="RESTORE_FAILURE" />
+     
+     <input name="mode" />
+     
+   <on-start>
+      <evaluate expression="myFlowAttrs.setFlowCartItems(cart.getCartList())" />
+   </on-start>  
+    
+   <action-state id="throwEmptyCart"  >
+      
+       <evaluate expression="webflowDebug.throwEmptyCart(cart, flowRequestContext)" /> 
+       
+       <transition to="evalPaymentState" />
+       
+       <transition on-exception="com.mycompany.hosted.checkoutFlow.exceptions.WebflowCartEmptyException"    
+            to="errNavigation"     />  
+   </action-state>   
+      
+     <action-state id="evalPaymentState"> 
+      
+       <evaluate expression="paymentStateAttrs.evalPaymentState(
+                   flowRequestContext, ERR_GET_DETAIL, ERR_ON_CAPTURE, myFlowAttrs)" />    
+                   
+       <transition on="ERR_GET_DETAIL"  to="getDetails" /> 
+       
+       <transition on="ERR_ON_CAPTURE"   to="capturePayment"  />   
+       
+       <transition on="DETAILS_COMPLETED" to="showDetails" />    
+        
+       <transition on="SHIP_SELECTED" to="paymentButtons" />
+       
+        <transition on="LOGGED_IN" to="selectShipAddress" />
+                    
+       <transition on="NONE" to="login" />    
+      
+     </action-state>    
+     
+     <view-state id="login" view="login.jsp">   
+
+        <on-entry>          
+           <evaluate expression="evalApplicationState.setViewScopeComparisonAttrs(flowRequestContext)" />      
+           <set name="viewScope.errCustomerId"  value="flashScope.errCustomerId" />
+           <set name="viewScope.errors" value="flashScope.errors" /> 
+           <evaluate expression="webflowDebug.debugPrintOnRefresh(flowRequestContext, 'on-entry')"   />      
+        </on-entry>   
+        
+        <on-render>           
+            <evaluate expression="webflowDebug.evalCartOnRender(flowRequestContext, cart, myFlowAttrs)" />
+            <evaluate expression="evalApplicationState.evalState(flowRequestContext)" />            
+        </on-render>
+        
+        <transition on="submitId" to="processLogin" />
+        
+        <transition on="create" to="updateShipAddressSub">        
+            <evaluate expression="createCustomerFlow.newCustomer()" result="flashScope.postalAddress" />            
+            <evaluate expression="myFlowAttrs.evalFormTitle(postalAddress)" />
+            <evaluate expression="myFlowAttrs.setCustomerInsertion(true)" />
+        </transition> 
+        
+        <transition on="cancel"     to="mvcHome"  />
+       
+     </view-state>
+     
+     <action-state id="processLogin">       
+        <evaluate expression = "createCustomerFlow.processLogin(requestParameters.customerId, 
+               flowRequestContext)" result="requestScope.customer"/> 
+                             
+        <transition on="success"  to="selectShipAddress"  >
+            <evaluate expression="createCustomerFlow.customerIntoSession(customer, 
+            flowRequestContext)" />
+        </transition>
+        
+        <transition 
+            on-exception="com.mycompany.hosted.checkoutFlow.jpa.CustomerNotFoundException"
+            to="login">                     
+              <set name="flashScope.errCustomerId" value="requestParameters.customerId" />
+              <set name="flashScope.errors"   value="messageContext.allMessages" />
+        </transition>           
+     </action-state>
+     
+     <view-state id="selectShipAddress" view="selectShipAddress.jsp">
+        <on-entry>
+          <evaluate expression="evalApplicationState.setViewScopeComparisonAttrs(flowRequestContext)" />   
+        </on-entry>
+        <on-render>
+           <evaluate expression="webflowDebug.evalCartOnRender(flowRequestContext, cart, myFlowAttrs)" />
+           <evaluate expression="evalApplicationState.evalState(flowRequestContext)" />                
+           <evaluate                
+               expression="selectAddressFlow.createAddressList(externalContext.sessionMap.customer)"
+               result = "viewScope.addressList" />
+           <evaluate expression="selectAddressFlow.setPreviousSelected(flowRequestContext)"    
+               result = "viewScope.previousSelected" />
+        </on-render> 
+               
+        <transition on="create" to="updateShipAddressSub" >        
+            <evaluate expression="selectAddressFlow.newShipAddress()" result="flashScope.postalAddress" />            
+            <evaluate expression="myFlowAttrs.evalFormTitle(postalAddress)" />
+        </transition>                
+        <transition on="edit" to="updateShipAddressSub" >    
+            <evaluate 
+                  expression="selectAddressFlow.findPostalAddress(requestParameters.addressIdentifier,flowRequestContext)"
+                  result="flashScope.postalAddress" />                  
+            <evaluate
+                  expression="myFlowAttrs.evalFormTitle(postalAddress)" />                       
+        </transition>               
+        <transition on="select" to="paymentButtons">
+            <evaluate 
+                expression="selectAddressFlow.selectedIntoSession(requestParameters.addressIdentifier,
+                     flowRequestContext)" />                
+        </transition>               
+        <transition on="delete" />        
+     </view-state>
+     
+     <subflow-state id="updateShipAddressSub" subflow="address-sub-flow">     
+         <input name="addressIn"      value="flashScope.postalAddress" />         
+         <input name="myFlowAttrs" value="myFlowAttrs" />         
+         <input name="originalCustomer" value="externalContext.sessionMap.customer" />                 
+         <transition on="cancelled" to="evalPaymentState" >    
+            <evaluate 
+            expression="createCustomerFlow.customerIntoSessionOnCancel
+                          (currentEvent.attributes.customerCopy, flowRequestContext, myFlowAttrs)" />
+         </transition>         
+         <transition on="updated" to="selectShipAddress">     
+             <evaluate expression="myFlowAttrs.setCustomerInsertion(false)" />     
+             <evaluate expression="jpaUpdateAddress.update(currentEvent.attributes.postalAddress,
+                 flowRequestContext)"  result="requestScope.customer" />              
+            <set name="externalContext.sessionMap.customer" value="customer" />
+            <evaluate expression="selectAddressFlow.updateSessionSelectionIfEdited(flowRequestContext, 
+                                   currentEvent.attributes.postalAddress)"    />
+         </transition>          
+         <transition on="home"   to="mvcHome"  />         
+         <transition on="cart"   to="mvcCart" />    
+   </subflow-state>
+   
+   <view-state id="paymentButtons"	    view="buttons_advanced.jsp">   
+       <on-entry>    
+          <evaluate expression="evalApplicationState.setViewScopeComparisonAttrs(flowRequestContext)" />   
+          <evaluate expression="payPalClient.getClientId()"  result="viewScope.clientId" />                                   
+       </on-entry>
+       
+       <on-render>                          
+          <evaluate expression="webflowDebug.evalCartOnRender(flowRequestContext, cart, myFlowAttrs)" /> 
+          <evaluate expression="evalApplicationState.evalState(flowRequestContext)" />  
+          <evaluate expression="generateClientToken.generate()"  result="viewScope.clientToken"  />                
+          <set name="viewScope.allMessages"    value="flashScope.allMessages"  /> 
+          <set name="viewScope.paymentSourceNullException" value="flashScope.paymentSourceNullException" />                    
+       </on-render>      
+       
+       <transition on="editShipAddress" to="selectShipAddress" />
+       
+       <transition on="editBillingAddress" to="updateShipAddressSub">
+           <set name="flashScope.postalAddress" value="externalContext.sessionMap.customer" />
+           <evaluate
+                  expression="myFlowAttrs.evalFormTitle(postalAddress)" /> 
+       </transition>
+       
+       <transition on="createPaymentError" to="errCheckoutException" />
+       
+       <transition on="reviewDetails" to="getDetails" >  
+          <set name="externalContext.sessionMap.scriptId" value="requestParameters.paymentId" />
+       </transition>          
+   
+   </view-state>
+   
+   <action-state id="getDetails">
+        <evaluate expression="getOrderDetails.getOrder(flowRequestContext, myFlowAttrs)" />                    
+        <transition on="success"          to="showDetails"  >
+            <set name="flashScope.allMessages"   value="messageContext.allMessages" />            
+        </transition>
+        <transition on="failed" to="paymentStatusFailed" />
+        <transition on-exception="com.mycompany.hosted.checkoutFlow.exceptions.CheckoutHttpException"
+           to="errCheckoutException" />                   
+    </action-state>
+   
+   <view-state id="showDetails" view="paymentDetails.jsp">      
+      <on-entry>      
+          <evaluate expression="evalApplicationState.setViewScopeComparisonAttrs(flowRequestContext)" />       
+          <set name="viewScope.allMessages"    value="flashScope.allMessages"  />           
+      </on-entry>
+            
+      <on-render>      
+         <evaluate expression="webflowDebug.evalCartOnRender(flowRequestContext, cart, myFlowAttrs)" />  
+         <evaluate expression="evalApplicationState.evalState(flowRequestContext)" />      
+      </on-render>
+           
+      <transition on="authorize" to="capturePayment" />               
+      <transition on="cancel" to="evalPaymentState" > 
+         <evaluate expression="paymentStateAttrs.cancelPaymentDetails(flowRequestContext)" />
+      </transition>
+   </view-state> 
+   
+   <action-state id="capturePayment" >      
+      <evaluate expression="captureOrder.capture(flowRequestContext)"  />  
+      <transition on="success" to="persistOrder" />     
+      <transition on="failed" to="paymentStatusFailed" />
+      <transition on-exception="com.mycompany.hosted.checkoutFlow.exceptions.CheckoutHttpException"
+           to="errCheckoutException" />           
+   </action-state>
+   
+   <action-state id="persistOrder">  
+    
+         <evaluate expression="jpaPersistOrder.persist(flowRequestContext)" 
+             result="flowScope.order"/>         
+         <transition on="success"    to="paymentCompleted">               
+              <evaluate expression="paymentStateAttrs.removeAttrsOnOrderPersisted(flowRequestContext)" />
+              <evaluate expression="paymentStateAttrs.setOrderIntoSession(flowRequestContext, order)"/>
+         </transition>
+           
+   </action-state>  
+   
+   <view-state id="errNavigation" view="errNavigation.jsp">
+      <on-entry>
+        <set name="viewScope.exception" value="flowRequestContext.flashScope.exception" />
+         <evaluate expression="webflowDebug.debugPrintOnRefresh(flowRequestContext, 'on-entry')"   />  
+      </on-entry>
+      <on-render>
+         <evaluate expression="webflowDebug.debugPrintOnRefresh(flowRequestContext, 'on-render')"   />  
+         <evaluate expression="evalApplicationState.evalNavigationErrorView(viewScope.exception,
+               flowRequestContext)" />
+      </on-render>
+      <transition on="viewCatalogue" to="mvcHome" />
+      <transition on="viewShoppingCart" to="mvcCart" />
+   </view-state>   
+     
+     <end-state  id="mvcHome"    />
+     <end-state id="mvcCart"    />
+     <end-state id="paymentCompleted">
+        <output name="orderId" value="order.getOrderId()" />
+     </end-state> 
+     <end-state id="errCheckoutException" />
+     <end-state id="paymentStatusFailed"  />       
+    
+     
+     <global-transitions>
+        <transition on="home" to="mvcHome" />
+        <transition on="cart" to="mvcCart" />
+     </global-transitions>
+             
+    
+ </flow>            

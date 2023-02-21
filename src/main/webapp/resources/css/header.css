@@ -1,0 +1,14 @@
+@charset "UTF-8";
+
+       #hdrPanel a:link {
+	         color: #0000FF;  font-weight:bold
+	   }
+	   #hdrPanel a:visited {
+	         color: #0000FF;  font-weight:bold
+	   }
+	   #hdrPanel a:link:hover, #hdrPanel a:visited:hover {
+	       color: #0000AA; text-decoration:underline; font-weight:bold
+	   }
+	  /* #hdrPanel li {
+	      margin-left: 20px
+	   }*/

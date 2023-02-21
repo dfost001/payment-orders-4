@@ -1,0 +1,12 @@
+target/
+scr/
+*.class
+*.jar
+.settings/
+.classpath
+.project
+.metadata
+note*.*
+src/test/
+
+

@@ -1,0 +1,14 @@
+.plus {
+    background-image:url(../images/plus1.jpg);
+    background-repeat:no-repeat;
+    background-position:center left;
+    padding-left:25px;
+    cursor:pointer
+}
+.minus {
+    background-image:url(../images/minus1.jpg);
+    background-repeat:no-repeat;
+    background-position:center left;
+    padding-left:25px;
+    cursor:pointer
+}
