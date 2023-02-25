@@ -198,7 +198,7 @@ public class GetOrderDetails  {
 		 details.setCreateTime(order.createTime());		 		
 		 
 		 if(debugIntegrationType.equals("AdvancedCheckout"))		 
-		     initPaymentSourceOrThrow(order, details);		
+		     initPaymentSourceOrThrow(order, details);	//throws PaymentSourceNull 	
 		 
 		 if(order.payer() != null) //Standard checkout or PayPal Login
 			 initCardHolderFromPayer(details,order, customer, request);		
