@@ -53,7 +53,7 @@
               
               CVV: <span> ${details.processorResponse.cvvCode}</span><br/>
               Card Number: <span>${details.processorResponse.responseCode}</span><br/>
-              Address: <span>${addrCodeValue}</span><br/>
+              Address Error: <span>${addrCodeValue}</span><br/>
              </blockquote>
         </c:if>	 
         
