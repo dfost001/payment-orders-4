@@ -29,20 +29,27 @@
   
   <style>
       
-      /* #paypal-button-container {
-	      width: 450px;
-	      float: left;
-       }*/
-
-      #card-form {
+  .card_container {
+   
+    background-color: #FFFFFF;
+    padding-top: 20px;  
+    width: 1025px;
+  
+    }     
+      .divLeftContent {
         width: 450px;
         float:left;
-      }
       
-      .divCart {
-	     width: 450px;
+      }
+      .divCustomer {
+	     width: 500px;
 	     float: left;
-	     margin-left: 100px;
+	     padding-left: 75px
+	     /*margin-left: 100px;*/
+       }
+       .postalField {
+          width:125px;
+          float:left;
        }
        .modal-body p {
           text-align: center
@@ -66,6 +73,7 @@
                      You may also contact support to complete your order at 123-123-1234 </span></li>
                </ul>                            
        </div>
+     
        
      <br /><br /> 
     
@@ -78,63 +86,66 @@
   </c:if>
   
   <form id="card-form">
-    <div id="divCardNumber">
-    <label for="card-number">Card Number</label><div id="card-number" class="card_field"></div>
-    </div>
-    <div>
-      <label for="expiration-date">Expiration Date</label>
-      <div id="expiration-date" class="card_field"></div>
-    </div>
-    <div>
-      <label for="cvv">CVV</label><div id="cvv" class="card_field"></div>
-    </div>
-    <fieldset>
-    <legend><span style="font-size: 14pt">Card Details</span> &nbsp;&nbsp;
-       <a href="${flowExecutionUrl}&_eventId=editBillingAddress" 
-       class="btn btn-info btn-sm">Edit</a>&nbsp;&nbsp;
-       <button class="btn btn-success btn-sm" value="submit" >Continue</button>
-    </legend>
-    <label for="card-holder-name">Name on Card</label>
-    <input type="text" id="card-holder-name" name="card-holder-name" autocomplete="off" 
-    placeholder="card holder name" value="${customer.firstName} ${customer.lastName}" readonly/>
-    <div>
+   <div class="divLeftContent">
+   
+       <label for="card-number">Card Number</label><div id="card-number" class="card_field"></div>
+    
+       <label for="expiration-date">Expiration Date</label><div id="expiration-date" class="card_field"></div>
+       
+       <label for="cvv">CVV</label><div id="cvv" class="card_field"></div>
+       
+        <jsp:include page="includes/cartItems.jsp"></jsp:include>
+       
+       <button value="submit" id="submit" class="btn btn-success" 
+            style="width:400px">Continue</button>
+    
+    </div><!-- end divLeftContent -->
+    <div class="divCustomer">       
+    
+        <label for="card-holder-name">Name on Card</label>
+         <input type="text" id="card-holder-name" name="card-holder-name" autocomplete="off" 
+          placeholder="card holder name" value="${customer.firstName} ${customer.lastName}" 
+          readonly />
+          
       <label for="card-billing-address-street">Billing Address</label>
       <input type="text" id="card-billing-address-street" readonly
           name="card-billing-address-street" autocomplete="off" placeholder="street address"
-      value="${customer.address}"/>
-    </div>    
-    <div>
+          value="${customer.address}"/>   
+          
+      <label>&nbsp;</label>   
       <input type="text" id="card-billing-address-city" name="card-billing-address-city" 
-      autocomplete="off" placeholder="city" value="${customer.city}" readonly/>
-    </div>
-    <div>
-      <input type="text" id="card-billing-address-state" name="card-billing-address-state" 
-      autocomplete="off" placeholder="state" value="${customer.state}" readonly/>
-    </div>
-    <div>
-      <input type="text" id="card-billing-address-zip" name="card-billing-address-zip" readonly
-      autocomplete="off" placeholder="zip / postal code" value="${customer.postalCode}"/>
-    </div>
-    <div>
+      autocomplete="off" placeholder="city" value="${customer.city}"
+      style="float:left;width:175px"
+       readonly/>    
+       &nbsp;
+       <input type="text" id="card-billing-address-state" name="card-billing-address-state" 
+      autocomplete="off" placeholder="state" value="${customer.state}"
+       style="float:left;width:100px"
+       readonly/> 
+        &nbsp;  
+       <input type="text" id="card-billing-address-zip" name="card-billing-address-zip" readonly
+      autocomplete="off" placeholder="zip / postal code" value="${customer.postalCode}"
+       style="float:left;width:125px"  />    <br/>
+      
       <input type="text" id="card-billing-address-country" name="card-billing-address-country" 
-      autocomplete="off" placeholder="country code" value="US" readonly/>
-    </div>
-    </fieldset>
-    <button value="submit" id="submit" class="btn btn-success">Continue</button>
+      autocomplete="off" placeholder="country code" value="US" 
+       style="width:100px" 
+      readonly/>
+      
+       <jsp:include page="includes/shippingAddress.jsp"></jsp:include>
+       
+       <br />
+       
+       <jsp:include page="includes/support.jsp" />
+          
+    </div><!-- end divCustomer -->
   </form>
-  
-   <div class="divCart">             
-             <jsp:include page="includes/shippingAddress.jsp"></jsp:include>
-             <jsp:include page="includes/cartItems.jsp"></jsp:include>
-   </div><!-- end cart -->
    
-   <br style="clear:both" />
    
-   <jsp:include page="includes/support.jsp" />
+  </div><!-- card-container -->
+   
   
-</div><br/><!-- end card-container --> 
-  
-    
+      
      <!-- Bootstrap modal with a link that returns the details view -->  
      
   <div class="modal fade" tabindex="-1" role="dialog" id="myModal">
