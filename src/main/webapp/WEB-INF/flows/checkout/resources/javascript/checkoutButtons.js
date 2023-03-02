@@ -272,13 +272,15 @@ $(document).ready(function(){
 	    	    
 	      }) //end render	      
 	      .then(function(fields){	 
-	    	  
+	    	   
 	    	   doSubmitHandler(fields);
 	    	 	
 	      });
 	     
 	    } catch(e) {
 	    	  alert("Error caught: " + e);}
+	    
+	   // alert("Fields rendered");
 	    
 	} //end doHostedFields
 	
