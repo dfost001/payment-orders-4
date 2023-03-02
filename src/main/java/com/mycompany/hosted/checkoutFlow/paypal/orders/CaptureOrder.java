@@ -13,13 +13,13 @@ import com.paypal.orders.Order;
 import com.paypal.orders.OrderRequest;
 import com.paypal.orders.OrdersCaptureRequest;
 import com.paypal.orders.PaymentCollection;
-import com.paypal.orders.PaymentSource;
+
 import com.paypal.orders.ProcessorResponse;
 import com.paypal.orders.PurchaseUnit;
 //import com.paypal.orders.AddressPortable;
 //import com.paypal.orders.LinkDescription;
 import com.paypal.orders.Capture;
-import com.paypal.orders.Card;
+
 import com.mycompany.hosted.checkoutFlow.PaymentObjectsValidator;
 import com.mycompany.hosted.checkoutFlow.WebFlowConstants;
 import com.mycompany.hosted.checkoutFlow.exceptions.CheckoutHttpException;
@@ -222,7 +222,8 @@ public class CaptureOrder {
 	      } else if(isFailedProcessorCode(capture.processorResponse())) {
 	    	  return "failed"; //Probably not necessary since capture status will be DECLINED
 	    	  
-	      } else if(isNullOrEmpty(details.getTransactionId())){
+	      } else if(order.status().contentEquals("COMPLETED")
+	    		  && isNullOrEmpty(details.getTransactionId())){
 	    		  
 	    		  this.throwIllegalArg("Status is COMPLETED and captureId is null");
 	      }	  
