@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import com.mycompany.hosted.checkoutFlow.WebFlowConstants;
 import com.mycompany.hosted.checkoutFlow.paypal.orders.PaymentDetails;
+import com.mycompany.hosted.checkoutFlow.paypal.orders.PaymentDetails.CaptureStatusEnum;
 import com.mycompany.hosted.exception_handler.EhrLogger;
 import com.mycompany.hosted.exception_handler.MvcNavigationException;
 import com.paypal.orders.ProcessorResponse;
@@ -101,20 +102,32 @@ public class FailedPaymentStatusController {
 	
 	private void evalProcessorResponse(PaymentDetails details, ModelMap map) {
 		
+		boolean valid = true;
+		
 		ProcessorResponse resp = details.getProcessorResponse();
 		
-		if(resp == null)
+		if(resp == null) //Should have already been thrown from CaptureOrder
 			EhrLogger.throwIllegalArg(this.getClass(), "evalProcessorResponse", 
 					"ProcessorResponse property of PaymentDetails is null");		
 		
-		if(isCvvError(resp.cvvCode()))
+		if(isCvvError(resp.cvvCode())) {
 			messages.add(this.CVV_INVALID_MSG);
-		
-		if(resp.responseCode() != null && !resp.responseCode().contentEquals("0000"))
+			valid = false; 
+		}
+		if(resp.responseCode() != null && !resp.responseCode().contentEquals("0000")) {
 			this.evalCardErrorMessage(resp.responseCode());
+			valid = false;
+		}
 		
-		if(resp.avsCode() != null)
+		if(resp.avsCode() != null) {
 		    messages.add(this.ADDRESS_ERR_MSG);
+		    valid =false;
+		}
+		
+		//Check on CaptureOrder code
+		if(valid && this.isValidCaptureStatus(details) && details.getStatusReason() == null)
+			EhrLogger.throwIllegalArg(this.getClass(), "evalProcessorResponse", 
+					"No failure has been evaluated: ProcessorResponse and CaptureStatus are OK");
 		
 		String addrCodeValue = resp.avsCode() == null ? "None" : resp.avsCode();
 		
@@ -177,6 +190,33 @@ public class FailedPaymentStatusController {
 			break;		
 		}
 		messages.add(msg);
+	}
+	
+	private boolean isValidCaptureStatus(PaymentDetails details) {
+		
+		boolean valid = false;
+		
+		CaptureStatusEnum status = details.getCaptureStatus();
+		
+		switch (status) {
+		case COMPLETED :
+		case PARTIALLY_REFUNDED:
+		case PENDING:
+		case REFUNDED:
+			valid = true;
+			break;
+		case FAILED:
+		case DECLINED:	
+			valid = false;
+			break;
+		default:
+			EhrLogger.throwIllegalArg(this.getClass(), "isValidCaptureStatus", 
+					"Unknown Capture Status value.");
+			
+		}
+		
+		return valid;
+		
 	}
 
 }
