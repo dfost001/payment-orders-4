@@ -201,7 +201,9 @@ public class CaptureOrder {
 	      debugPrintProcessorResponseOrThrow(capture); 
 	      
 	      System.out.println(MessageFormat.format("{0}: capture.status={1} transId={2}", 
-	    		  "CaptureOrder#initCaptureId", capture.status(), capture.id()));	      
+	    		  "CaptureOrder#initCaptureId", capture.status(), capture.id()));	    
+	      
+	      boolean failed = false;
 	      
 	      if(capture.captureStatusDetails() != null) {	    	  
 	    	 
@@ -212,22 +214,29 @@ public class CaptureOrder {
 	    	  System.out.println(MessageFormat.format("{0}: captureStatusDetails={1}", 
 		    		  "CaptureOrder#initCaptureId", reason));
 	    	  
-	    	  return "failed";
+	    	  failed = true;
+	      }
 	    	  
-	      } else if(details.getCaptureStatus().equals(CaptureStatusEnum.DECLINED)
+	      if(details.getCaptureStatus().equals(CaptureStatusEnum.DECLINED)
 	    		  || details.getCaptureStatus().equals(CaptureStatusEnum.FAILED)) {       	  
 	    	  	    	  
-	    	  return "failed";
+	    	  failed = true;
+	      }
 	    	  
-	      } else if(isFailedProcessorCode(capture.processorResponse())) {
-	    	  return "failed"; //Probably not necessary since capture status will be DECLINED
+	      if(isFailedProcessorCode(capture.processorResponse())) {
+	    	  failed = true; //Probably not necessary since capture status will be DECLINED
+	      }
 	    	  
-	      } else if(order.status().contentEquals("COMPLETED")
-	    		  && isNullOrEmpty(details.getTransactionId())){
+	      if(!failed && order.status().contentEquals("COMPLETED") 
+	    		  && isNullOrEmpty(details.getTransactionId())) {
 	    		  
 	    		  this.throwIllegalArg("Status is COMPLETED and captureId is null");
-	      }	  
-	        return "success";		  
+	      }	 
+	      
+	      if(failed) 
+	    	  return "failed";
+	      
+	      return "success";		  
 	  }
 	  
 	
