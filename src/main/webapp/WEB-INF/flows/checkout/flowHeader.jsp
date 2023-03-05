@@ -63,6 +63,11 @@
 	           <li>
 	              <label style="margin-top:5px"><a href="${flowExecutionUrl}&_eventId=editShipAddress" 
 	                     class="btn btn-default btn-sm">
+	                     Edit Billing Address</a></label>
+	           </li>
+	           <li>
+	              <label style="margin-top:5px"><a href="${flowExecutionUrl}&_eventId=editShipAddress" 
+	                     class="btn btn-default btn-sm">
 	                     Cancel</a></label>
 	           </li>
 	           <li>
