@@ -13,7 +13,7 @@ jQuery(document).ready(function(){
 	        
 	        top += $(".panel-body").innerHeight(false);       
 	        
-	        var left = $(".panel-body").outerWidth(true) - $("#popCartContent").width();
+	        var left = $(".panel-body").outerWidth(true) - $("#popCartContent").width() + 20;
 	        
 	       // var right = $(".panel-body").css("right");
 	        
