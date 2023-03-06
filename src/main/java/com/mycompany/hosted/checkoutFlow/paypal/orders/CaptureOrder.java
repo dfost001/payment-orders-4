@@ -24,6 +24,7 @@ import com.mycompany.hosted.checkoutFlow.PaymentObjectsValidator;
 import com.mycompany.hosted.checkoutFlow.WebFlowConstants;
 import com.mycompany.hosted.checkoutFlow.exceptions.CheckoutHttpException;
 import com.mycompany.hosted.checkoutFlow.exceptions.ProcessorResponseNullException;
+import com.mycompany.hosted.checkoutFlow.mvc.controller.paypal.FailedPaymentStatusController;
 import com.mycompany.hosted.checkoutFlow.paypal.orders.PaymentDetails.CaptureStatusEnum;
 import com.mycompany.hosted.checkoutFlow.paypal.orders.PaymentDetails.FailedReasonEnum;
 import com.mycompany.hosted.exception_handler.EhrLogger;
@@ -203,7 +204,9 @@ public class CaptureOrder {
 	      System.out.println(MessageFormat.format("{0}: capture.status={1} transId={2}", 
 	    		  "CaptureOrder#initCaptureId", capture.status(), capture.id()));	    
 	      
-	      boolean failed = false;
+	      boolean isFailedStatusDetails = false;
+	      boolean isFailedCaptureStatus = false;
+	      boolean isFailedProcessorResponse = false;
 	      
 	      if(capture.captureStatusDetails() != null) {	    	  
 	    	 
@@ -214,23 +217,29 @@ public class CaptureOrder {
 	    	  System.out.println(MessageFormat.format("{0}: captureStatusDetails={1}", 
 		    		  "CaptureOrder#initCaptureId", reason));
 	    	  
-	    	  failed = true;
+	    	  isFailedStatusDetails = true;
 	      }
 	    	  
 	      if(details.getCaptureStatus().equals(CaptureStatusEnum.DECLINED)
 	    		  || details.getCaptureStatus().equals(CaptureStatusEnum.FAILED)) {       	  
 	    	  	    	  
-	    	  failed = true;
+	    	 
+	    	  isFailedCaptureStatus = true;
 	      }
 	    	  
 	      if(isFailedProcessorCode(capture.processorResponse())) {
-	    	  failed = true; //Probably not necessary since capture status will be DECLINED
+	    	  isFailedProcessorResponse = true; //Probably not necessary since capture status will be DECLINED
 	      }
+	      
+	      if(isFailedCaptureStatus &&  !isFailedProcessorResponse && !isFailedStatusDetails)
+	    	  this.throwIllegalArg("Capture Status is FAILED, and StatusDetails and "
+	    			  + "ProcessorResponse indicate success");
+	      
+	      boolean failed =  isFailedStatusDetails || isFailedProcessorResponse;
 	    	  
-	      if(!failed && order.status().contentEquals("COMPLETED") 
-	    		  && isNullOrEmpty(details.getTransactionId())) {
+	      if(!failed && order.status().contentEquals("COMPLETED")  && isNullOrEmpty(details.getTransactionId())) {
 	    		  
-	    		  this.throwIllegalArg("Status is COMPLETED and captureId is null");
+	    		  this.throwIllegalArg("Capture Status is COMPLETED and captureId is null");
 	      }	 
 	      
 	      if(failed) 
