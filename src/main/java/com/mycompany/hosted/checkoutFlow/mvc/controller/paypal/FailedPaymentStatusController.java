@@ -125,7 +125,7 @@ public class FailedPaymentStatusController {
 		}
 		
 		//Check on CaptureOrder code
-		if(valid && this.isValidCaptureStatus(details) && details.getStatusReason() == null)
+		if(valid && isValidCaptureStatus(details) && details.getStatusReason() == null)
 			EhrLogger.throwIllegalArg(this.getClass(), "evalProcessorResponse", 
 					"No failure has been evaluated: ProcessorResponse and CaptureStatus are OK");
 		
@@ -192,7 +192,7 @@ public class FailedPaymentStatusController {
 		messages.add(msg);
 	}
 	
-	private boolean isValidCaptureStatus(PaymentDetails details) {
+ public static boolean isValidCaptureStatus(PaymentDetails details) {
 		
 		boolean valid = false;
 		
@@ -210,7 +210,7 @@ public class FailedPaymentStatusController {
 			valid = false;
 			break;
 		default:
-			EhrLogger.throwIllegalArg(this.getClass(), "isValidCaptureStatus", 
+			EhrLogger.throwIllegalArg(FailedPaymentStatusController.class, "isValidCaptureStatus", 
 					"Unknown Capture Status value.");
 			
 		}
