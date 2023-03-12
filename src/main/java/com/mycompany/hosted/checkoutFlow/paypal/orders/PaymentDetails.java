@@ -70,6 +70,8 @@ public class PaymentDetails implements Serializable{
 	
 	private CaptureStatusEnum captureStatus;
 	
+	private GetDetailsStatus completionStatus;
+	
 	private FailedReasonEnum statusReason;
 	
 	private ProcessorResponse processorResponse;
@@ -159,9 +161,6 @@ public class PaymentDetails implements Serializable{
 		this.captureTime = captureTime;
 	}
 
-
-	
-
 	public CaptureStatusEnum getCaptureStatus() {
 		return captureStatus;
 	}
@@ -186,6 +185,14 @@ public class PaymentDetails implements Serializable{
 		this.createdStatus = createdStatus;
 	}
 
+    
+	public GetDetailsStatus getCompletionStatus() {
+		return completionStatus;
+	}
+
+	public void setCompletionStatus(GetDetailsStatus completionStatus) {
+		this.completionStatus = completionStatus;
+	}
 
 	public String getLastDigits() {
 		return lastDigits;
