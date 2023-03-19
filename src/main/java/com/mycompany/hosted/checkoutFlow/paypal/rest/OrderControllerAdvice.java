@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.mycompany.hosted.checkoutFlow.WebFlowConstants;
 import com.mycompany.hosted.checkoutFlow.exceptions.CheckoutHttpException;
 import com.mycompany.hosted.exception_handler.EhrLogger;
 
@@ -19,7 +20,7 @@ public class OrderControllerAdvice {
 			HttpServletRequest request,
 			HttpServletResponse response) {
 		
-		request.getSession().setAttribute("checkoutHttpException", ex);
+		request.getSession().setAttribute(WebFlowConstants.CHECKOUT_HTTP_EXCEPTION, ex);
 		
 		String view = "";
 		
