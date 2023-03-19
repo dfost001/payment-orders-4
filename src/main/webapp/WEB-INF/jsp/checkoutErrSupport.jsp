@@ -46,6 +46,8 @@
                Support <span class="glyphicon glyphicon-collapse-down"></span></a>
                
           <blockquote style="font-size:10pt; display:none" id="errContent">
+          
+           <p>Exception UUID: <span>${checkoutErrModel.uuid}</span></p>
 		 
 		   <p>Response Status: <span>${checkoutErrModel.responseCode}</span></p>
           
