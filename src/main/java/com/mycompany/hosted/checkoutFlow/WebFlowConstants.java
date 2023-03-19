@@ -29,7 +29,12 @@ public class WebFlowConstants {
 	
 	public static final String PAYPAL_SCRIPT_ID = "scriptId";
 	
-	public static final String CHECKOUT_ERR_MODEL = "checkoutErrModel";
+	//public static final String CHECKOUT_ERR_MODEL = "checkoutErrModel";
+	
+	public static final String CHECKOUT_HTTP_EXCEPTION = "checkoutHttpException";
+	
+	//Written by MyFlowHandler, Read by PaymentExceptionController
+	public static final String CHECKOUT_EXCEPTION_REQUEST_PARAM = "id";
 	
 	public static final String ERROR_DETAIL_BEAN = "errorDetailBean";
 	
