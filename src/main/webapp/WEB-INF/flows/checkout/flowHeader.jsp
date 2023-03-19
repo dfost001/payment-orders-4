@@ -61,9 +61,9 @@
 	       
 	       <c:if test="${flowRequestContext.currentState.id eq 'paymentButtons' }" >
 	           <li>
-	              <label style="margin-top:5px"><a href="${flowExecutionUrl}&_eventId=editShipAddress" 
+	              <label style="margin-top:5px"><a href="${flowExecutionUrl}&_eventId=editBillingAddress" 
 	                     class="btn btn-default btn-sm">
-	                     Edit Billing Address</a></label>
+	                     Edit Billing Info</a></label>
 	           </li>
 	           <li>
 	              <label style="margin-top:5px"><a href="${flowExecutionUrl}&_eventId=editShipAddress" 
