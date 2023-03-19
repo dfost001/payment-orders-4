@@ -1,11 +1,16 @@
 package com.mycompany.hosted.checkoutFlow.mvc.controller.paypal;
 
+import java.util.Map;
+
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.mycompany.hosted.checkoutFlow.WebFlowConstants;
 import com.mycompany.hosted.checkoutFlow.exceptions.CheckoutErrModel;
@@ -33,23 +38,24 @@ public class PaymentExceptionController {
 		private final String errFatal = "An error occurred. Please contact support to complete your order.";		
 		
 		@GetMapping(value="paymentException/initErrorModel")
-		public String  initModel(HttpSession session, ModelMap model) throws MvcNavigationException {					
+		public String  initModel(@RequestParam(WebFlowConstants.CHECKOUT_EXCEPTION_REQUEST_PARAM)
+		   String id, HttpServletRequest request, ModelMap model) throws MvcNavigationException {					
 			
-			CheckoutHttpException ex = (CheckoutHttpException)session.getAttribute("checkoutHttpException");
+			CheckoutHttpException ex = this.extractFromContext(id, request); 
 			
-			if(ex == null) //View is under cache-control, so static view with link to checkout cannot be requested.
+			if(ex.isExpired())
 				this.throwMvcNavigationException();
 			
-			CheckoutErrModel errModel = initErrorModel(ex);	
+			CheckoutErrModel errModel = initErrorModel(ex, id);				
 			
 			if(errModel.isRecoverable()) {		
 			
-				  session.removeAttribute("checkoutHttpException");
+				  ex.setExpired(true);
 			
 			      errModel.setRetUrl(this.evalRecoverableUrl(errModel));
 			}
 			
-			removeDetailsOnNotRecoverable(session,errModel);	
+			removeDetailsOnNotRecoverable(request.getSession(),errModel);	
 			
 			model.addAttribute("checkoutErrModel", errModel);					
 			
@@ -57,24 +63,49 @@ public class PaymentExceptionController {
 			
 		}
 		
+		@SuppressWarnings("unchecked")
+		private CheckoutHttpException extractFromContext(String idKey,
+				HttpServletRequest request) throws MvcNavigationException {
+			
+			ServletContext sc = request.getServletContext();
+			
+			Map<String, CheckoutHttpException> map = 
+					(Map<String, CheckoutHttpException>) sc.getAttribute(WebFlowConstants.CHECKOUT_HTTP_EXCEPTION);
+			
+			if(map == null)
+				EhrLogger.throwIllegalArg(this.getClass(), "extractFromContext", 
+						"Map<String, CheckoutHttpException> is not found in ServletContext");
+			
+			CheckoutHttpException ex = map.get(idKey) ;
+			
+			if(ex == null)
+				EhrLogger.throwIllegalArg(this.getClass(), "extractFromContext", 
+						"CheckoutHttpException keyed by id is not the map.");		
+			
+			return ex;			
+			
+		}
+		
 		private void throwMvcNavigationException() throws MvcNavigationException {
 			
             String err = EhrLogger.doMessage(this.getClass(), "initModel", 
-            		"CheckoutHttpException is not in the session.");
+            		"CheckoutHttpException is marked as expired after a recoverable was processed.");
 			
-			err += "Assuming browser navigation after exception removed";
+			err += "Most likely cause is browser navigation with a book-marked URL.";
 			
 			throw new MvcNavigationException(err);
 			
 		}
 		
-		private CheckoutErrModel initErrorModel(CheckoutHttpException ex) {
+		private CheckoutErrModel initErrorModel(CheckoutHttpException ex, String id) {
 			
 	       if(ex.isTestException()) {				
 				
-				return initTestRecoverable(ex);
+				return initTestRecoverable(ex, id);
 			}
 			CheckoutErrModel err = new CheckoutErrModel();
+			
+			err.setUuid(id);
 			
 			Throwable cause = EhrLogger.getRootCause(ex.getCause());
 			
@@ -171,7 +202,7 @@ public class PaymentExceptionController {
 			return url;
 		}
 		
-		private CheckoutErrModel initTestRecoverable(CheckoutHttpException ex) {
+		private CheckoutErrModel initTestRecoverable(CheckoutHttpException ex, String id) {
 			
 	        CheckoutErrModel err = new CheckoutErrModel();	
 	        
@@ -192,6 +223,8 @@ public class PaymentExceptionController {
 	        err.setMessageTrace(EhrLogger.getMessages(ex, "<br />"));
 	        
 	        err.setErrMethod(ex.getMethod());
+	        
+	        err.setUuid(id);
 	        
 	        return err;
 			
