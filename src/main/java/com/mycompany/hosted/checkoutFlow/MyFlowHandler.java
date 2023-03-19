@@ -1,5 +1,12 @@
 package com.mycompany.hosted.checkoutFlow;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.UUID;
+
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -10,6 +17,7 @@ import org.springframework.webflow.execution.FlowExecutionOutcome;
 import org.springframework.webflow.execution.repository.FlowExecutionRepositoryException;
 import org.springframework.webflow.mvc.servlet.AbstractFlowHandler;
 
+import com.mycompany.hosted.checkoutFlow.exceptions.CheckoutHttpException;
 import com.mycompany.hosted.checkoutFlow.exceptions.FlowNavigationException;
 import com.mycompany.hosted.checkoutFlow.exceptions.OnRenderCartEmptyException;
 import com.mycompany.hosted.checkoutFlow.mvc.controller.paypal.PaymentExceptionController;
@@ -105,8 +113,12 @@ public class MyFlowHandler extends AbstractFlowHandler {
         	 Integer orderId = outcome.getOutput().getInteger("orderId");
              return "/payment/status?orderId=" + orderId; 
         
-         case "errCheckoutException":        	
-        	 return "/paymentException/initErrorModel";
+         case "errCheckoutException":  
+        	 String encid = this.setCheckoutExIntoContext(request) ;
+        	 return "/paymentException/initErrorModel?" +
+        			 WebFlowConstants.CHECKOUT_EXCEPTION_REQUEST_PARAM
+        			 + "=" + encid;
+        			 
         	 
          case "paymentStatusFailed" :
         	 return "/failedStatus/handle";
@@ -118,6 +130,40 @@ public class MyFlowHandler extends AbstractFlowHandler {
          }
          
          return null;
+	 }
+	 
+	 private String setCheckoutExIntoContext(HttpServletRequest request) {
+		 
+		 CheckoutHttpException ex = 
+				 (CheckoutHttpException)request.getSession().getAttribute(WebFlowConstants.CHECKOUT_HTTP_EXCEPTION);
+		 
+		 if(ex == null)
+			 EhrLogger.throwIllegalArg(this.getClass(), "setCheckoutExIntoContext",
+					 "Cannot extract CheckoutHttpException from the session");
+		 
+		 request.getSession().removeAttribute(WebFlowConstants.CHECKOUT_HTTP_EXCEPTION);
+		 
+		 ServletContext sc = request.getServletContext();
+		 
+		 @SuppressWarnings("unchecked")
+		Map<String, CheckoutHttpException> map = (Map<String, CheckoutHttpException>)
+				 sc.getAttribute(WebFlowConstants.CHECKOUT_HTTP_EXCEPTION);
+		 
+		 if(map == null) {
+			 map = new LinkedHashMap<>();
+			 sc.setAttribute(WebFlowConstants.CHECKOUT_HTTP_EXCEPTION, map);
+		 }		 
+		 
+		 String id = UUID.randomUUID().toString();
+		 
+		 try {
+			id =  URLEncoder.encode(id, "UTF-8");
+		 } catch (UnsupportedEncodingException e) {}
+		 
+	     map.put(id, ex) ;
+		 
+		 return id;
+		 
 	 }
 	 
 
