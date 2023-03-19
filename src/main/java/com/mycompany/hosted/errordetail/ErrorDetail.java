@@ -84,6 +84,7 @@ public class ErrorDetail {
 	}
 	public void setPaymentDetails(PaymentDetails paymentDetails) {
 		this.paymentDetails = paymentDetails;
-	}*/	
+	}*/
+	
 
 }
