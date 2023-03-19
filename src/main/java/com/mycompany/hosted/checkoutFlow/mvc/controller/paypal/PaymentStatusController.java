@@ -88,15 +88,22 @@ public class PaymentStatusController {
 	   
 	   if(order != null) {
 		   
-		   session.removeAttribute(WebFlowConstants.ORDER_ENTITY_VALUE);		   
+		   session.removeAttribute(WebFlowConstants.ORDER_ENTITY_VALUE);	
+		   
+		   EhrLogger.consolePrint(this.getClass(), "processOrder", "Order found in session");
 		   
 		   return order;
 	   }
 	   
 	   order = (OrderPayment) map.get(ORDER); //FlashAttribute added on RefundController
 	   
-	   if(order != null)
+	   if(order != null) {
+		   
+		   EhrLogger.consolePrint(this.getClass(), "processOrder", 
+				   "Order found in ModelMap: Set by RefundController");
+				  
 		   return order;
+	   }
 	    
 	   ErrorDetailBean errorBean = WebFlowConstants.errorBeanFromServletContext(request);
 		
@@ -105,6 +112,7 @@ public class PaymentStatusController {
 		if(errDetail != null) {
 			
 			EhrLogger.consolePrint(this.getClass(), "processOrder", "Returning order from ErrorBean.");
+			
 			return errDetail.getOrder();
 		}
 			
@@ -117,7 +125,7 @@ public class PaymentStatusController {
 	}
 	
   /*
-   * To do: Configure Persistance Transalation, DataAccessException resolver.
+   * To do: Configure Persistence Translation, DataAccessException resolver.
    */
 	
 	private OrderPayment orderFromDb(Integer orderId)  {
@@ -133,7 +141,9 @@ public class PaymentStatusController {
 			EhrLogger.throwIllegalArg(this.getClass(), "orderFromDb", 
 					"Persistence error: Unable to retrieve Order. ", ex);
 		}
+		
 		EhrLogger.consolePrint(this.getClass(), "orderFromDb", "Returning orderFromDb. ");
+		
 		return order;
 	}	
 	
@@ -192,5 +202,7 @@ public class PaymentStatusController {
 		        + " refundId = " + serviceDetail.getRefundId());
 		
 	}
+	
+	
 
 } //end Controller
