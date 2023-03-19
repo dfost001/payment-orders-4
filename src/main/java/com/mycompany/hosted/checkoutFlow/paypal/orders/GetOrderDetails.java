@@ -48,7 +48,7 @@ public class GetOrderDetails  {
 	
 	public GetOrderDetails() {
 		
-		testException = false;
+		testException = true;
 	}
 	
 	 public String getOrder(RequestContext ctx, MyFlowAttributes flowAttrs) 
@@ -100,7 +100,7 @@ public class GetOrderDetails  {
 		    	
 		    	ctx.getExternalContext()
 		    	   .getSessionMap()
-		    	   .put("checkoutHttpException", httpEx);
+		    	   .put(WebFlowConstants.CHECKOUT_HTTP_EXCEPTION, httpEx);
 		    	
 		    	throw httpEx;
 		   /* } catch (PaymentSourceNullException ex)	{		    	
@@ -135,7 +135,7 @@ public class GetOrderDetails  {
 	 
   private void handleTestException(RequestContext ctx) throws CheckoutHttpException {
 	  
-	   testException = false;			    
+	   this.testException = false;			    
 	    
 	    CheckoutHttpException ex = new CheckoutHttpException(new Exception("Testing Exception"),
 	    		"getOrder");
@@ -144,7 +144,7 @@ public class GetOrderDetails  {
 	    
 	    ctx.getExternalContext()
   	   .getSessionMap()
-  	   .put("checkoutHttpException", ex);
+  	   .put(WebFlowConstants.CHECKOUT_HTTP_EXCEPTION, ex);
 	    
 		throw ex;
   }

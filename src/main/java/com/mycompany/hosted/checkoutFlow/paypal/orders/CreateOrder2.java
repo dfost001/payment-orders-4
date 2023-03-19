@@ -41,7 +41,7 @@ public class CreateOrder2 {
 	
 	private String customId="Hartley";
 	
-	private boolean testException = false;
+	private boolean testException = true;
 	
 	@Autowired
 	private PayPalClient payClient;	
@@ -97,7 +97,7 @@ public class CreateOrder2 {
 
    private void initTestException() throws CheckoutHttpException {
 	   
-	   testException = false;
+	    this.testException = false;
 		
 		CheckoutHttpException ex = 
 				new CheckoutHttpException(new Exception("Testing Exception"), "create");

@@ -24,9 +24,10 @@ import com.mycompany.hosted.checkoutFlow.PaymentObjectsValidator;
 import com.mycompany.hosted.checkoutFlow.WebFlowConstants;
 import com.mycompany.hosted.checkoutFlow.exceptions.CheckoutHttpException;
 import com.mycompany.hosted.checkoutFlow.exceptions.ProcessorResponseNullException;
-import com.mycompany.hosted.checkoutFlow.mvc.controller.paypal.FailedPaymentStatusController;
+//import com.mycompany.hosted.checkoutFlow.mvc.controller.paypal.FailedPaymentStatusController;
 import com.mycompany.hosted.checkoutFlow.paypal.orders.PaymentDetails.CaptureStatusEnum;
 import com.mycompany.hosted.checkoutFlow.paypal.orders.PaymentDetails.FailedReasonEnum;
+import com.mycompany.hosted.checkoutFlow.paypal.orders.PaymentDetails.GetDetailsStatus;
 import com.mycompany.hosted.exception_handler.EhrLogger;
 //import com.paypal.orders.Payer;
 import com.paypal.http.HttpResponse;
@@ -42,7 +43,7 @@ public class CaptureOrder {
 	@Autowired
 	private PayPalClient payClient;
 	
-	boolean testException = false;
+	boolean testException = true;
 	
 	public String capture(RequestContext ctx) throws CheckoutHttpException  {		
 		 
@@ -85,7 +86,7 @@ public class CaptureOrder {
 		    	
 		    	ctx.getExternalContext()
 		    	   .getSessionMap()
-		    	   .put("checkoutHttpException", httpEx);
+		    	   .put(WebFlowConstants.CHECKOUT_HTTP_EXCEPTION, httpEx);
 		    	
 		    	throw httpEx;
 		}
@@ -199,6 +200,8 @@ public class CaptureOrder {
 	      
 	      details.setProcessorResponse(capture.processorResponse());
 	      
+	      details.setCompletionStatus(GetDetailsStatus.valueOf(order.status()));
+	      
 	      debugPrintProcessorResponseOrThrow(capture); 
 	      
 	      System.out.println(MessageFormat.format("{0}: capture.status={1} transId={2}", 
@@ -236,8 +239,12 @@ public class CaptureOrder {
 	    			  + "ProcessorResponse indicate success");
 	      
 	      boolean failed =  isFailedStatusDetails || isFailedProcessorResponse;
-	    	  
-	      if(!failed && order.status().contentEquals("COMPLETED")  && isNullOrEmpty(details.getTransactionId())) {
+	      
+	      // Even if FAILED and status is COMPLETED, the transactionId is assigned, but may not always
+	      // be true. So no error is thrown if failed and no Id.
+	      if(!failed  
+	    		  && details.getCompletionStatus().equals(GetDetailsStatus.COMPLETED) 
+	    		  && isNullOrEmpty(details.getTransactionId())) {
 	    		  
 	    		  this.throwIllegalArg("Capture Status is COMPLETED and captureId is null");
 	      }	 
