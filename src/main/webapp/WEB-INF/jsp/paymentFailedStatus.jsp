@@ -42,6 +42,7 @@
            <c:forEach var="msg" items="${MESSAGE_LIST_KEY}">
             <li style="font-size:11pt;font-style:italic"> ${msg} </li>
            </c:forEach>
+           <li><a href="<c:url value="/checkout-flow" />" class="alert-link">Return to Checkout</a></li>
          </ul>
        </div>
 	   
@@ -71,9 +72,11 @@
 	   
 	   <p>PayPal Resource Id: ${details.payPalResourceId}
 	   
-	   <p>Get Details Created Status: <span>${details.createdStatus}</span></p>
+	   <p>Created Status: <span>${details.createdStatus}</span></p>
           
-       <p>Captured Status: <span>${details.captureStatus}</span></p>       
+       <p>Captured Status: <span>${details.captureStatus}</span></p>    
+       
+       <p>Final Status: <span>${details.completionStatus}</span>   
            
        <c:if test="${not empty details.statusReason}">
              <p>Failed Capture Reason: <span>${details.statusReason}</span></p>   
@@ -84,39 +87,7 @@
 	    <h5><a href="<c:url value='/spring/catalogue/view'/>" style="font-weight:bold">
 	          Return Home</a></h5>
 	    
-	      <a href="#" id="support" style="font-weight:bold">
-               Support <span class="glyphicon glyphicon-collapse-down"></span></a>
-               
-          <blockquote style="font-size:10pt; display:none" id="errContent">
-          
-           <p>Transaction Id: <span>$(details.transactionId}</span>
-		 
-		   <p>Get Details Created Status: <span>${details.createdStatus}</span></p>
-          
-           <p>Captured Status: <span>${details.captureStatus}</span></p>
-           
-           <p>Failed Capture Reason: <span>${details.statusReason}</span></p>              
-           
-           <p> Card Processor : </p>         
-           
-            <blockquote>
-              Address: <span>${avs_code}</span>
-              CVV: <span> ${cvv_code}</span>
-              Card Number: <span>${response_code}</span>
-             </blockquote>      
-           
-          </blockquote>     
-        
-          <script>
-           $("#support").click(function(ev){
-        	   
-        	   ev.preventDefault();
-        	   
-        	   $(this).next().slideToggle();
-        	   
-           });
-        
-        </script>
+	     
 	</div>   
  </div><!-- end container -->
 </body>
