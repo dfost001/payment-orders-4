@@ -181,13 +181,18 @@ public class SelectAddressFlow {
 			return;
 		}
 		
+		if(((ShipAddress)postalEdited).getId() == null) //Inserting
+			return;
+		
 		if(((ShipAddress)postalEdited).getId().equals(
 				
-				((ShipAddress)postalSelected).getId()))
+			((ShipAddress)postalSelected).getId()))
 			
-                    sessionMap.put(WebFlowConstants.SELECTED_POSTAL_ADDR, postalEdited);		
+               sessionMap.put(WebFlowConstants.SELECTED_POSTAL_ADDR, postalEdited);
 		
-		
+		     EhrLogger.consolePrint(this.getClass(), "updateSessionIfEdited", 
+		    		 "postalEdited == postalSelected: " 
+		              + postalEdited.equals(postalSelected));		
 	}
 	
 	
