@@ -86,7 +86,7 @@ public class ApacheConnectBean2 implements Serializable {
         config = RequestConfig.custom().setRedirectsEnabled(true)
                 .setConnectionRequestTimeout(10000)
                 .setConnectTimeout(10000)
-                .setSocketTimeout(30000)
+                .setSocketTimeout(15000)
                 .build();
     }
 
