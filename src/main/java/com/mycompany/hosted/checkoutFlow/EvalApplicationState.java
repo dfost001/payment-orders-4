@@ -153,7 +153,7 @@ public class EvalApplicationState {
                 throwIfInvalidDetails(err);            	
 			}
             
-            detail = currentPaymentDetails == null ? "Details view entered after Capture completed. " 
+            detail = currentPaymentDetails == null ? "Null Details - View entered after Capture completed. " 
             		: "";	
             break;
 		
