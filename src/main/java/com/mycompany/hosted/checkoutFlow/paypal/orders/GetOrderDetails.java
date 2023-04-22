@@ -58,6 +58,8 @@ public class GetOrderDetails  {
 		   PaymentDetails paymentDetails = null;
 		   
 		   OrderId orderId = null;
+		   
+		   HttpResponse<Order> response = null;
 		    
 		    try {
 		    	
@@ -81,7 +83,7 @@ public class GetOrderDetails  {
 		 
 		       OrdersGetRequest request = new OrdersGetRequest(orderId.getId());	
 		    
-		       HttpResponse<Order> response = payClient.client().execute(request);	//throws IOException			   
+		       response = payClient.client().execute(request);	//throws IOException			   
 		    
 		       String err = debugPrintOrder(response);
 		    
@@ -96,19 +98,18 @@ public class GetOrderDetails  {
 		    
 		    } catch(IOException | IllegalArgumentException | PaymentSourceNullException ex) {
 		    	
-		        CheckoutHttpException httpEx = new CheckoutHttpException(ex, "getOrder");
+		       // CheckoutHttpException httpEx = new CheckoutHttpException(ex, "getOrder");
+		    	
+		    	CheckoutHttpException httpEx = EhrLogger.initCheckoutException(ex,
+		    			"getOrder", response, null);
 		    	
 		    	ctx.getExternalContext()
 		    	   .getSessionMap()
 		    	   .put(WebFlowConstants.CHECKOUT_HTTP_EXCEPTION, httpEx);
 		    	
 		    	throw httpEx;
-		   /* } catch (PaymentSourceNullException ex)	{		    	
-		    	ctx.getFlashScope().put("paymentSourceNullException", ex);		    	
-		    	throw ex; */
-		    } catch (Exception ex) {
-		    	throw ex;
-		    }		  
+		  
+		    } 
 		    
 		    GetDetailsStatus detailsStatus = paymentDetails.getCreatedStatus();
 		    

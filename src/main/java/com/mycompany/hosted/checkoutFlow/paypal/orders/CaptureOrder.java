@@ -43,11 +43,13 @@ public class CaptureOrder {
 	@Autowired
 	private PayPalClient payClient;
 	
-	boolean testException = true;
+	boolean testRecoverableException = false;
+	boolean testCaptureId = true;
+	
 	
 	public String capture(RequestContext ctx) throws CheckoutHttpException  {		
 		 
-		 if(testException) {		 
+		 if(testRecoverableException) {		 
 		 
 			  doTestException(ctx);				
 		 }		
@@ -57,6 +59,8 @@ public class CaptureOrder {
 			       .get(WebFlowConstants.PAYMENT_DETAILS);
 		 
 		String statusResult = "";
+		
+		 HttpResponse<Order> response = null;
 		 
 		 try {
 		 
@@ -68,7 +72,7 @@ public class CaptureOrder {
 	    
 	    request.requestBody(buildRequestBody());
 	   
-	    HttpResponse<Order> response = payClient.client().execute(request); //throws IOException	    
+	    response = payClient.client().execute(request); //throws IOException	    
 	       
 	    System.out.println("CaptureOrder#Status Code: " + response.statusCode());		   
 	   
@@ -82,7 +86,10 @@ public class CaptureOrder {
 	    
 		} catch(IOException | RuntimeException | ProcessorResponseNullException e) {
 			
-			 CheckoutHttpException httpEx = new CheckoutHttpException(e, "capture");
+			 //CheckoutHttpException httpEx = new CheckoutHttpException(e, "capture");
+			
+			CheckoutHttpException httpEx = EhrLogger.initCheckoutException(e,
+					"capture", response, null);
 		    	
 		    	ctx.getExternalContext()
 		    	   .getSessionMap()
@@ -98,7 +105,7 @@ public class CaptureOrder {
 	  
 	  private void doTestException(RequestContext ctx) throws CheckoutHttpException {
 		  
-		  testException = false; 
+		  testRecoverableException = false; 
 		    
 		    CheckoutHttpException ex = new CheckoutHttpException(new Exception("Testing Exception"),
 		    		"capture");
@@ -204,8 +211,8 @@ public class CaptureOrder {
 	      
 	      debugPrintProcessorResponseOrThrow(capture); 
 	      
-	      System.out.println(MessageFormat.format("{0}: capture.status={1} transId={2}", 
-	    		  "CaptureOrder#initCaptureId", capture.status(), capture.id()));	    
+	      System.out.println(MessageFormat.format("{0}: capture.status={1} transId={2} order.status={3}", 
+	    		  "CaptureOrder#initCaptureId", capture.status(), capture.id(), order.status()));	    
 	      
 	      boolean isFailedStatusDetails = false;
 	      boolean isFailedCaptureStatus = false;
@@ -248,6 +255,11 @@ public class CaptureOrder {
 	    		  
 	    		  this.throwIllegalArg("Capture Status is COMPLETED and captureId is null");
 	      }	 
+	      
+	      if(this.testCaptureId) {
+	    	  testCaptureId = false;
+	    	  this.throwIllegalArg("Deserialized Order does not contain a CaptureId");
+	      }
 	      
 	      if(failed) 
 	    	  return "failed";
