@@ -1,8 +1,6 @@
 package com.mycompany.hosted.checkoutFlow.mvc.controller.paypal;
 
-import java.util.Map;
 
-import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
@@ -15,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.mycompany.hosted.checkoutFlow.WebFlowConstants;
 import com.mycompany.hosted.checkoutFlow.exceptions.CheckoutErrModel;
 import com.mycompany.hosted.checkoutFlow.exceptions.CheckoutHttpException;
+import com.mycompany.hosted.checkoutFlow.servlet_context.ServletContextAttrs;
 import com.mycompany.hosted.exception_handler.EhrLogger;
 import com.mycompany.hosted.exception_handler.MvcNavigationException;
 import com.paypal.http.Headers;
@@ -41,7 +40,7 @@ public class PaymentExceptionController {
 		public String  initModel(@RequestParam(WebFlowConstants.CHECKOUT_EXCEPTION_REQUEST_PARAM)
 		   String id, HttpServletRequest request, ModelMap model) throws MvcNavigationException {					
 			
-			CheckoutHttpException ex = this.extractFromContext(id, request); 
+			CheckoutHttpException ex = ServletContextAttrs.getException(id);
 			
 			if(ex.isExpired())
 				this.throwMvcNavigationException();
@@ -63,35 +62,14 @@ public class PaymentExceptionController {
 			
 		}
 		
-		@SuppressWarnings("unchecked")
-		private CheckoutHttpException extractFromContext(String idKey,
-				HttpServletRequest request) throws MvcNavigationException {
-			
-			ServletContext sc = request.getServletContext();
-			
-			Map<String, CheckoutHttpException> map = 
-					(Map<String, CheckoutHttpException>) sc.getAttribute(WebFlowConstants.CHECKOUT_HTTP_EXCEPTION);
-			
-			if(map == null)
-				EhrLogger.throwIllegalArg(this.getClass(), "extractFromContext", 
-						"Map<String, CheckoutHttpException> is not found in ServletContext");
-			
-			CheckoutHttpException ex = map.get(idKey) ;
-			
-			if(ex == null)
-				EhrLogger.throwIllegalArg(this.getClass(), "extractFromContext", 
-						"CheckoutHttpException keyed by id is not the map.");		
-			
-			return ex;			
-			
-		}
+		
 		
 		private void throwMvcNavigationException() throws MvcNavigationException {
 			
             String err = EhrLogger.doMessage(this.getClass(), "initModel", 
             		"CheckoutHttpException is marked as expired after a recoverable was processed.");
 			
-			err += "Most likely cause is browser navigation with a book-marked URL.";
+			err += "Most likely cause is browser navigation or a book-marked URL.";
 			
 			throw new MvcNavigationException(err);
 			
@@ -107,30 +85,26 @@ public class PaymentExceptionController {
 			
 			err.setUuid(id);
 			
-			Throwable cause = EhrLogger.getRootCause(ex.getCause());
+            Throwable cause = EhrLogger.getRootCause(ex.getCause());
 			
-			if(cause != null)	        
-		           err.setCause(cause.getClass().getCanonicalName());			
-		
+			String exceptionName = cause != null ? cause.getClass().getSimpleName()
+					: "CheckoutHttpException: Cause is null";
 			
-			Integer status = null;	
+			err.setCause(exceptionName);	
 			
+			err.setResponseCode(ex.getResponseStatus());
+            
 			String contentType = "";
 			
-	        if(cause != null && cause.getClass() == HttpException.class) {
+			//Content-Type is labeled as Error Content-Type
+			
+	        if(cause != null && cause.getClass() == HttpException.class) {			
 				
-				status = ((HttpException)cause).statusCode();
-				
-				err.setResponseCode(status);
-				
-				contentType = this.doContentType((HttpException)cause);
-				
-				err.setContentType (contentType);
-		    }  
-	        else {
-	        	err.setContentType("Content-Type only applicable for HttpException");
-	        	err.setResponseCode(-1);
-	        }
+				contentType = this.doContentType((HttpException)cause);				
+		    } 
+	        else contentType = "Only available for HttpException failed status" ;
+	      
+	        err.setErrContentType(contentType);
 	        
 	        if(contentType.toLowerCase().contains("html"))
 	        	err.setMessageTrace(contentType); //For HTML, message will be the body
@@ -138,10 +112,10 @@ public class PaymentExceptionController {
 	        	err.setMessageTrace(EhrLogger.getMessages(ex, "<br />")); //Message trace
 	        
 	        
-	        err.setMessage(ex.getMessage());
+	        err.setMessage(ex.getMessage());	      
 	       
-	        //To do: eval status codes: 422
-	        if(status != null && status == 503) {
+	        //To do: eval status other codes: 422
+	        if(ex.getResponseStatus().equals(503)) {
 	        	
 	        	err.setRecoverable(true);
 	        	
@@ -157,10 +131,10 @@ public class PaymentExceptionController {
 	        
 	        if(err.getErrMethod().contains("refund"))
 	        	err.setRecoverable(false); // Currently, there is no code to configure a link back to PaymentStatusController
+		
+			return err;
 	        
-	      
-	        
-	        return err;
+	       
 	   }
 	 /*
 	  * Note: If error occurs at getDetails there will be no PAYMENT_DETAILS to remove	
@@ -214,9 +188,9 @@ public class PaymentExceptionController {
 	                	
 	        err.setFriendly(errRecoverable); 
 	        
-	        err.setResponseCode(503);
+	        err.setResponseCode(new Integer(503));
 	        
-	        err.setContentType("NA (Only applicable for HttpException)");
+	        err.setErrContentType("Only applicable for non-testing HttpException");
 	        
 	        err.setMessage(ex.getMessage());
 	        
