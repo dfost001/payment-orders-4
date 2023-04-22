@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import com.paypal.http.Headers;
 
+
 public class HttpException extends IOException {
 
 	private Headers headers;
