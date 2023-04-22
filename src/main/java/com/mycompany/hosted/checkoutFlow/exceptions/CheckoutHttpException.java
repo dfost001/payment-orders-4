@@ -11,6 +11,10 @@ public class CheckoutHttpException extends Exception {
 	
 	private boolean isExpired = false;
 	
+	private Integer persistOrderId;
+	
+	private Integer responseStatus = -1;
+	
 	public CheckoutHttpException(Throwable cause, String method) {
 		
 		super(cause.getMessage());		
@@ -48,7 +52,22 @@ public class CheckoutHttpException extends Exception {
 	public void setExpired(boolean isExpired) {
 		this.isExpired = isExpired;
 	}
-	
+
+	public Integer getPersistOrderId() {
+		return persistOrderId;
+	}
+
+	public void setPersistOrderId(Integer persistOrderId) {
+		this.persistOrderId = persistOrderId;
+	}
+
+	public Integer getResponseStatus() {
+		return responseStatus;
+	}
+
+	public void setResponseStatus(Integer responseStatus) {
+		this.responseStatus = responseStatus;
+	}
 	
 
 }
