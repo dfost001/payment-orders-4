@@ -2,10 +2,10 @@ package com.mycompany.hosted.checkoutFlow.mvc.controller.paypal;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.List;
+
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
+
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -23,15 +23,15 @@ import com.mycompany.hosted.checkoutFlow.paypal.orders.GetOrderDetails;
 import com.mycompany.hosted.checkoutFlow.paypal.orders.PayPalClient;
 //import com.mycompany.hosted.checkoutFlow.paypal.orders.PaymentDetails;
 import com.mycompany.hosted.checkoutFlow.paypal.orders.PaymentDetails;
+import com.mycompany.hosted.checkoutFlow.servlet_context.ServletContextAttrs;
 import com.mycompany.hosted.errordetail.ErrorDetailBean;
 import com.mycompany.hosted.errordetail.ErrorDetail;
 import com.mycompany.hosted.exception_handler.EhrLogger;
 //import com.mycompany.hosted.exception_handler.MvcNavigationException;
-import com.mycompany.hosted.model.Customer;
-import com.mycompany.hosted.model.order.LineItemPayment;
+
 //import com.mycompany.hosted.model.order.LineItemPayment;
 import com.mycompany.hosted.model.order.OrderPayment;
-import com.mycompany.hosted.model.order.OrderShipTo;
+
 import com.mycompany.hosted.model.order.ServiceDetail;
 //import com.mycompany.hosted.model.order.OrderShipTo;
 import com.paypal.http.HttpResponse;
@@ -51,14 +51,14 @@ public class RefundController {
 	private final String ALREADY_REFUNDED_KEY = "ALREADY_REFUNDED_KEY";	
 	
 	private boolean testRetrieveEx = true;
+	
+	private boolean testPrintResponseOrThrow = false;
 
 	@Autowired
 	private PayPalClient payPalClient;
 	
 	@Autowired
-	private CustomerJpa jpa;		
-	
-	private HttpSession session;
+	private CustomerJpa jpa;	
 	
 	private HttpServletRequest httpRequest;
 	
@@ -68,9 +68,7 @@ public class RefundController {
 	public String refund(@PathVariable("orderId") Integer orderId,
 			HttpServletRequest request, RedirectAttributes redirectAttrs) 
 					throws CheckoutHttpException, RefundPaymentException {				
-		
-		this.session = request.getSession();
-		
+			
 		this.httpRequest = request;
 		
 		OrderPayment orderPayment = processOrder(orderId);
@@ -88,23 +86,30 @@ public class RefundController {
 		
 		refundRequest.prefer("return=representation");
 		
-		HttpResponse<Refund> response;
+		HttpResponse<Refund> response = null;
 		
 		try {
 		
 		 response = payPalClient.client().execute(refundRequest);
 		 
-		 System.out.println("RefundController#refund: status=" + response.statusCode());
+		 System.out.println("RefundController#refund: statusCode = " + response.statusCode());
+		 
+		 debugPrintResponseOrThrow(response.result()); //To do: evaluate status field: Throws test   
 		
-		} catch (IOException e) {
-			
-			initCheckoutHttpException(e) ;
-			
-			return "redirect:" + this.REDIRECT_HTTP_ERROR;
-			
-		}	
 		
-		debugPrintResponse(response.result()); //Stub: To do: evaluate status field    	      
+		} catch (IOException | RuntimeException e) {
+			
+			CheckoutHttpException checkoutEx = EhrLogger.initCheckoutException(e, 
+					"refund", response, orderId);
+			
+			String id = ServletContextAttrs.setException(checkoutEx);
+			
+			return "redirect:" + this.REDIRECT_HTTP_ERROR + "?"
+					+ WebFlowConstants.CHECKOUT_EXCEPTION_REQUEST_PARAM
+					+ "=" + id;
+			
+		}			
+		 	      
 	   
 	    OrderPayment updated = this.updateOrderStatus(orderPayment, response);	//Initalize from refund result  
 	    
@@ -233,7 +238,7 @@ public class RefundController {
 			
 			updated = jpa.updateRefundedOrder(order);	
 			
-			debugPrintUpdatedOrder(updated); // Merge without cascade option set throws Runtime
+			//debugPrintUpdatedOrder(updated); // Merge without cascade set on @ManyToOne throws Runtime
 			
 		} catch (Exception ex ) {		
 			
@@ -271,25 +276,37 @@ public class RefundController {
 	serviceDetail.setRefundTime(refund.createTime());
 	
 }
-	
-	private void initCheckoutHttpException(Exception e) {
+	/*
+	 * Bug: PaymentExceptionController expects CheckoutException in ServletContext
+	 */
+	/*private void initCheckoutHttpException(Exception e) {
 		
 		CheckoutHttpException checkoutEx = new CheckoutHttpException(e, "refund");
 		
 		session.setAttribute("checkoutHttpException", checkoutEx);	
 		
-	}
+	}*/
 	
-	private void debugPrintResponse(Refund refund) {
+	private void debugPrintResponseOrThrow(Refund refund) {		
 		
 		System.out.println("RefundController#debugPrintResponse: id=" 
 			 + refund.id() + " amount="
 		     + refund.amount().value());	
 		
+		if(testPrintResponseOrThrow) {
+			testPrintResponseOrThrow = false;
+			throw new IllegalArgumentException(EhrLogger.doMessage(
+				this.getClass(), "debugPrintResponseOrThrow", "Testing: Refund Id is null in the Response"));
+		}
+			
+		
+		if(refund.id() == null)
+		   throw new RuntimeException(EhrLogger.doMessage(
+				   this.getClass(), "debugPrintResponseOrThrow", "Refund Id is null in the Response"));
 		
 	}
 	
- private void debugPrintUpdatedOrder(OrderPayment order) {
+ /*private void debugPrintUpdatedOrder(OrderPayment order) {
 		
         String err="";
 		
@@ -328,7 +345,7 @@ public class RefundController {
 				+ shipTo.getFirstName() + " "
 				+ list.get(0).getDescription());
 		
-	} 
+	} */
 
 	
 	
