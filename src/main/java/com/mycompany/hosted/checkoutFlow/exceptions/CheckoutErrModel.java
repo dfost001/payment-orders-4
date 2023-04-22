@@ -7,7 +7,7 @@ public class CheckoutErrModel {
 	private String messageTrace;
 	private boolean recoverable;
 	private Integer responseCode;
-	private String contentType;
+	private String errContentType;
 	private String errMethod;
 	private String friendly;
 	private String retUrl;
@@ -38,11 +38,11 @@ public class CheckoutErrModel {
 		this.responseCode = responseCode;
 	}
 	
-	public String getContentType() {
-		return contentType;
+	public String getErrContentType() {
+		return errContentType;
 	}
-	public void setContentType(String contentType) {
-		this.contentType = contentType;
+	public void setErrContentType(String contentType) {
+		this.errContentType = contentType;
 	}
 	public String getFriendly() {
 		return friendly;
