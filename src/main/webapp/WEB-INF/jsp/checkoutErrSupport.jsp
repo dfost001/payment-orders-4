@@ -53,7 +53,7 @@
           
            <p>Cause: <span>${checkoutErrModel.cause}</span></p>  
            
-           <p>Content-Type: <span>${checkoutErrModel.contentType}</span> 
+           <p>Error Content-Type: <span>${checkoutErrModel.errContentType}</span> 
            
            <p>Message: <span>${checkoutErrModel.message}</span></p>  
            
