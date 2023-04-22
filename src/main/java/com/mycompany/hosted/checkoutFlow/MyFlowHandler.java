@@ -1,12 +1,5 @@
 package com.mycompany.hosted.checkoutFlow;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.UUID;
-
-import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -21,10 +14,8 @@ import com.mycompany.hosted.checkoutFlow.exceptions.CheckoutHttpException;
 import com.mycompany.hosted.checkoutFlow.exceptions.FlowNavigationException;
 import com.mycompany.hosted.checkoutFlow.exceptions.OnRenderCartEmptyException;
 import com.mycompany.hosted.checkoutFlow.mvc.controller.paypal.PaymentExceptionController;
-
+import com.mycompany.hosted.checkoutFlow.servlet_context.ServletContextAttrs;
 import com.mycompany.hosted.exception_handler.EhrLogger;
-
-
 
 public class MyFlowHandler extends AbstractFlowHandler {
 	
@@ -143,24 +134,7 @@ public class MyFlowHandler extends AbstractFlowHandler {
 		 
 		 request.getSession().removeAttribute(WebFlowConstants.CHECKOUT_HTTP_EXCEPTION);
 		 
-		 ServletContext sc = request.getServletContext();
-		 
-		 @SuppressWarnings("unchecked")
-		Map<String, CheckoutHttpException> map = (Map<String, CheckoutHttpException>)
-				 sc.getAttribute(WebFlowConstants.CHECKOUT_HTTP_EXCEPTION);
-		 
-		 if(map == null) {
-			 map = new LinkedHashMap<>();
-			 sc.setAttribute(WebFlowConstants.CHECKOUT_HTTP_EXCEPTION, map);
-		 }		 
-		 
-		 String id = UUID.randomUUID().toString();
-		 
-		 try {
-			id =  URLEncoder.encode(id, "UTF-8");
-		 } catch (UnsupportedEncodingException e) {}
-		 
-	     map.put(id, ex) ;
+		 String id = ServletContextAttrs.setException(ex);
 		 
 		 return id;
 		 
