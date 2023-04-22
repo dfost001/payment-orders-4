@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import com.mycompany.hosted.cart.Cart;
 import com.mycompany.hosted.cart.CartItem;
 import com.mycompany.hosted.checkoutFlow.exceptions.CheckoutHttpException;
+import com.mycompany.hosted.exception_handler.EhrLogger;
 import com.mycompany.hosted.mock.service.Book;
 import com.mycompany.hosted.model.PostalAddress;
 import com.paypal.http.HttpResponse;
@@ -41,7 +42,9 @@ public class CreateOrder2 {
 	
 	private String customId="Hartley";
 	
-	private boolean testException = true;
+	private boolean testRecoverableException = false;
+	
+	private boolean testIdNotAssigned = true;
 	
 	@Autowired
 	private PayPalClient payClient;	
@@ -57,7 +60,7 @@ public class CreateOrder2 {
 		  
 		System.out.println(this.getClass().getName() + "#create: executing") ; 	
 		
-		if(testException) {
+		if(testRecoverableException) {
 			
 			initTestException();
 		}
@@ -81,12 +84,20 @@ public class CreateOrder2 {
 		    	this.throwIllegalArg("HttpResponse or Order is null");
 		    }	
 	      
+	      if(this.testIdNotAssigned) {
+	    	  this.testIdNotAssigned = false;
+	    	  throw new IllegalArgumentException(
+	    			  "Testing CreateOrder: Response does not contain an Id");
+	      }
+	      
 	      if(response.result().id() == null)
 	    	  this.throwIllegalArg("PayPal Order result does not contain an Id");
 	      
 	    } catch (IOException | IllegalArgumentException io)  {	    	    	
 	    	
-	    	throw new CheckoutHttpException(io, "create");	    	
+	    	//throw new CheckoutHttpException(io, "create");	  
+	    	
+	    	throw EhrLogger.initCheckoutException(io, "create", response, null); //ControllerAdvice
 	    	
 	    }	    
 	    
@@ -97,7 +108,7 @@ public class CreateOrder2 {
 
    private void initTestException() throws CheckoutHttpException {
 	   
-	    this.testException = false;
+	    this.testRecoverableException = false;
 		
 		CheckoutHttpException ex = 
 				new CheckoutHttpException(new Exception("Testing Exception"), "create");
@@ -230,7 +241,7 @@ public class CreateOrder2 {
 		  
 		  throw new IllegalArgumentException(this.getClass().getCanonicalName()
 				  + "#createOrder: " + message);
-	  }
+	  } 
  
    private void debugPrint(HttpResponse<Order> response) {
 	   
