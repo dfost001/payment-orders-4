@@ -4,7 +4,29 @@ import java.text.MessageFormat;
 
 import org.springframework.web.servlet.ModelAndView;
 
+import com.mycompany.hosted.checkoutFlow.exceptions.CheckoutHttpException;
+import com.paypal.http.HttpResponse;
+import com.paypal.http.exceptions.HttpException;
+
 public class EhrLogger {
+	
+    public static CheckoutHttpException initCheckoutException(Exception ex, String method, 
+    		HttpResponse<?> response, Integer persistOrderId)	{
+    	
+    	CheckoutHttpException checkoutEx = new CheckoutHttpException(ex, method);
+    	
+    	checkoutEx.setPersistOrderId(persistOrderId);
+    	
+    	if(response != null)
+    		checkoutEx.setResponseStatus(response.statusCode());
+    	else if(HttpException.class.isAssignableFrom(ex.getClass())) {
+    		Integer status = ((HttpException)ex).statusCode();
+    		checkoutEx.setResponseStatus(status);
+    	}
+    	
+    	return checkoutEx;
+    	
+    }
 	
 	 public static void throwNullValues(Class<?> handler, String method, String[] titles,
 			 Object...objects) {
