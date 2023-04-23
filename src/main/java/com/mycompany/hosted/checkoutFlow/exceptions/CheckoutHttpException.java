@@ -15,6 +15,8 @@ public class CheckoutHttpException extends Exception {
 	
 	private Integer responseStatus = -1;
 	
+	private String payPalId;
+	
 	public CheckoutHttpException(Throwable cause, String method) {
 		
 		super(cause.getMessage());		
@@ -68,6 +70,14 @@ public class CheckoutHttpException extends Exception {
 	public void setResponseStatus(Integer responseStatus) {
 		this.responseStatus = responseStatus;
 	}
-	
 
+	public String getPayPalId() {
+		return payPalId;
+	}
+
+	public void setPayPalId(String payPalId) {
+		this.payPalId = payPalId;
+	}
+	
+    
 }

@@ -28,6 +28,7 @@ import com.mycompany.hosted.checkoutFlow.exceptions.ProcessorResponseNullExcepti
 import com.mycompany.hosted.checkoutFlow.paypal.orders.PaymentDetails.CaptureStatusEnum;
 import com.mycompany.hosted.checkoutFlow.paypal.orders.PaymentDetails.FailedReasonEnum;
 import com.mycompany.hosted.checkoutFlow.paypal.orders.PaymentDetails.GetDetailsStatus;
+import com.mycompany.hosted.checkoutFlow.paypal.rest.OrderId;
 import com.mycompany.hosted.exception_handler.EhrLogger;
 //import com.paypal.orders.Payer;
 import com.paypal.http.HttpResponse;
@@ -56,7 +57,8 @@ public class CaptureOrder {
 		
 		 PaymentDetails details = (PaymentDetails)ctx.getExternalContext()
 			       .getSessionMap()
-			       .get(WebFlowConstants.PAYMENT_DETAILS);
+			       .get(WebFlowConstants.PAYMENT_DETAILS);		 
+		 
 		 
 		String statusResult = "";
 		
@@ -65,6 +67,8 @@ public class CaptureOrder {
 		 try {
 		 
 		evalDetails(details);	//throws to catch-block for null object or empty resource id	
+		
+		//evalServerId(request); --done in GetDetails
 		
 	    OrdersCaptureRequest request = new OrdersCaptureRequest(details.getPayPalResourceId());
 	    
@@ -86,10 +90,12 @@ public class CaptureOrder {
 	    
 		} catch(IOException | RuntimeException | ProcessorResponseNullException e) {
 			
-			 //CheckoutHttpException httpEx = new CheckoutHttpException(e, "capture");
+			 OrderId payPalId = (OrderId)ctx.getExternalContext()
+				       .getSessionMap()
+				       .get(WebFlowConstants.PAYPAL_SERVER_ID);
 			
 			CheckoutHttpException httpEx = EhrLogger.initCheckoutException(e,
-					"capture", response, null);
+					"capture", response, payPalId, null);
 		    	
 		    	ctx.getExternalContext()
 		    	   .getSessionMap()

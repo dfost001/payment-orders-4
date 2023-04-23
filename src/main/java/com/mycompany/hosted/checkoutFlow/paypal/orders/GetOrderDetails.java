@@ -65,6 +65,8 @@ public class GetOrderDetails  {
 		    	
 		       orderId = evalOrderId(ctx); //throws IllegalArgument for null or not equal Id's
 		       
+		       this.compareScriptToServerId(ctx, orderId);
+		       
 		       Customer customer = handleNullCustomer(ctx);
 		    
 		       paymentDetails = new PaymentDetails(orderId.getId());		       
@@ -101,7 +103,7 @@ public class GetOrderDetails  {
 		       // CheckoutHttpException httpEx = new CheckoutHttpException(ex, "getOrder");
 		    	
 		    	CheckoutHttpException httpEx = EhrLogger.initCheckoutException(ex,
-		    			"getOrder", response, null);
+		    			"getOrder", response, orderId, null);
 		    	
 		    	ctx.getExternalContext()
 		    	   .getSessionMap()
@@ -156,29 +158,39 @@ public class GetOrderDetails  {
 	  SharedAttributeMap<Object> sharedSession = ctx.getExternalContext().getSessionMap();   		   
 		 
 	  OrderId orderId = (OrderId)sharedSession.get(WebFlowConstants.PAYPAL_SERVER_ID);		   
-		   
-	  String paramId = (String)sharedSession.get(WebFlowConstants.PAYPAL_SCRIPT_ID); 		  
+			
+	 String err = "";
 		
-		String err = "";
-		
-		if (orderId == null || orderId.getId() == null || orderId.getId().isEmpty())
+	 if (orderId == null || orderId.getId() == null || orderId.getId().isEmpty())
 			err += "Cannot find created orderId in the session. ";
 		
-		if(paramId == null || paramId.isEmpty()) {
-			err += "Cannot find Script orderId in the session. ";
-		}	
+	 if(!err.isEmpty())
+			EhrLogger.throwIllegalArg(this.getClass(), "getOrder", err);	
 		
-		if (err.isEmpty() && !orderId.getId().contentEquals(paramId)) {
-			System.out.println("GetDetails#evalOrderId: " + orderId.getId()
-			  + ": " + paramId);
-			err += "JavaScript orderId is not equal to created orderId";
-		}
+	 return orderId;
 		
-		if(!err.isEmpty())
-			EhrLogger.throwIllegalArg(this.getClass(), "getOrder", err);
+	}
+	
+	private void compareScriptToServerId (RequestContext ctx, OrderId orderId) {
 		
-		return orderId;
+		  String err = "";
 		
+		  SharedAttributeMap<Object> sharedSession = ctx.getExternalContext().getSessionMap(); 
+		  
+		  String paramId = (String)sharedSession.get(WebFlowConstants.PAYPAL_SCRIPT_ID); 
+		  
+		  if(paramId == null || paramId.isEmpty()) {
+				err += "Cannot find Script orderId in the session. ";
+			}	
+			
+			if (err.isEmpty() && !orderId.getId().contentEquals(paramId)) {
+				System.out.println("GetDetails#evalOrderId: " + orderId.getId()
+				  + ": " + paramId);
+				err += "JavaScript orderId is not equal to created orderId";
+			}
+			
+			if(!err.isEmpty())
+				EhrLogger.throwIllegalArg(this.getClass(), "getOrder", err);
 	}
 	 /*
 	  * Note: Details created with the OrderId
