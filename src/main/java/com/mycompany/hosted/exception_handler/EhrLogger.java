@@ -5,21 +5,20 @@ import java.text.MessageFormat;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.mycompany.hosted.checkoutFlow.exceptions.CheckoutHttpException;
-import com.mycompany.hosted.checkoutFlow.paypal.rest.OrderId;
+
 import com.paypal.http.HttpResponse;
 import com.paypal.http.exceptions.HttpException;
 
 public class EhrLogger {
 	
     public static CheckoutHttpException initCheckoutException(Exception ex, String method, 
-    		HttpResponse<?> response, OrderId payPalId, Integer persistOrderId)	{
+    		HttpResponse<?> response, String payPalId, Integer persistOrderId)	{
     	
     	CheckoutHttpException checkoutEx = new CheckoutHttpException(ex, method);
     	
-    	checkoutEx.setPersistOrderId(persistOrderId);
+    	checkoutEx.setPersistOrderId(persistOrderId);    	
     	
-    	if(payPalId != null)
-    		checkoutEx.setPayPalId(payPalId.getId());
+    	checkoutEx.setPayPalId(payPalId);
     	
     	if(response != null)
     		checkoutEx.setResponseStatus(response.statusCode());

@@ -48,10 +48,12 @@
           <blockquote style="font-size:10pt; display:none" id="errContent">
           
            <p>Exception UUID: <span>${checkoutErrModel.uuid}</span></p>
+           
+           <p>PayPal Resource Id: <span>${checkoutErrModel.exception.payPalId}</span></p>
 		 
 		   <p>Response Status: <span>${checkoutErrModel.responseCode}</span></p>
           
-           <p>Cause: <span>${checkoutErrModel.cause}</span></p>  
+           <p>Cause: <span>${checkoutErrModel.cause}</span></p>             
            
            <p>Error Content-Type: <span>${checkoutErrModel.errContentType}</span> 
            
@@ -61,7 +63,11 @@
            
            <p>Error Method: ${checkoutErrModel.errMethod}</p>
            
-           <p>Messages: <span>${checkoutErrModel.messageTrace}</span></p>
+           <p>Database Persist Order Id: ${checkoutErrModel.exception.persistOrderId} </p> 
+           
+           <p>Captured Transaction Id: ${checkoutErrModel.exception.capturedPaymentId} </p>
+           
+           <p>Messages: ${checkoutErrModel.messageTrace}</p>
            
         </blockquote>     
         

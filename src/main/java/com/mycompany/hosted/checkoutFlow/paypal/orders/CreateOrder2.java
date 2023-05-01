@@ -44,7 +44,7 @@ public class CreateOrder2 {
 	
 	private boolean testRecoverableException = false;
 	
-	private boolean testIdNotAssigned = true;
+	private boolean testIdNotAssigned = false;
 	
 	@Autowired
 	private PayPalClient payClient;	
@@ -95,8 +95,7 @@ public class CreateOrder2 {
 	      
 	    } catch (IOException | IllegalArgumentException io)  {	    	    	
 	    	
-	    	//throw new CheckoutHttpException(io, "create");	  
-	    	
+	    	//payPalId=null, persistOrderId=null	    	
 	    	throw EhrLogger.initCheckoutException(io, "create", response, null, null); //ControllerAdvice
 	    	
 	    }	    

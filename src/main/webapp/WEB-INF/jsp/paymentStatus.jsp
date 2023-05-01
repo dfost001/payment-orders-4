@@ -86,8 +86,9 @@
   
   <h2>Payment Status: ${order.paymentStatus}</h2>
   
-   <form action="${pageContext.request.contextPath}/spring/refund/request/${orderId}"
-					       method="get" >
+   <form
+      action="${pageContext.request.contextPath}/spring/refund/request/${orderId}/${serviceId}/${captureId}"
+	  method="get" >
       <div class="myTopPanel">
 		
 			<div class="divPanelHeader">				

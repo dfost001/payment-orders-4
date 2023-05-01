@@ -8,5 +8,9 @@ public class ProcessorResponseNullException extends Exception {
 	public ProcessorResponseNullException() {
 		super(issue) ;
 	}
+	
+	public ProcessorResponseNullException(String message) {
+		super(message);
+	}
 
 }

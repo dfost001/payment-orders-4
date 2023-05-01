@@ -15,7 +15,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import com.mycompany.hosted.cart.Cart;
 import com.mycompany.hosted.checkoutFlow.WebFlowConstants;
-import com.mycompany.hosted.checkoutFlow.exceptions.RefundPaymentException;
+
 import com.mycompany.hosted.checkoutFlow.jpa.CustomerJpa;
 
 import com.mycompany.hosted.errordetail.ErrorDetail;
@@ -45,12 +45,16 @@ public class PaymentStatusController {
 	private CustomerJpa jpa;	
 	
 	public static final String ORDER = WebFlowConstants.ORDER_ENTITY_VALUE; //"order"
+	private static final String ORDER_ID = "orderId";
+	private static final String PAYPAL_ID = "serviceId";
+	private static final String CAPTURE_ID = "captureId";
+	
 	
 	private HttpSession session;
 	
 	@GetMapping(value="/payment/status")
 	public String showOrderStatus(@RequestParam("orderId") Integer orderId, 			         
-			HttpServletRequest request, ModelMap model) throws RefundPaymentException  {		
+			HttpServletRequest request, ModelMap model)   {		
 		
 		System.out.println("PaymentStatusController is executing for order " + orderId);
 		
@@ -58,7 +62,7 @@ public class PaymentStatusController {
 		
 		OrderPayment order = this.processOrder(orderId, model, request);
 		
-		debugPrintOrThrowOrder (order);		
+		debugPrintOrThrowOrder (order);			
 		
 		model.addAttribute(ORDER, order);
 		
@@ -66,8 +70,15 @@ public class PaymentStatusController {
 		
 		model.addAttribute(WebFlowConstants.ERROR_DETAIL_BEAN, 
 				WebFlowConstants.errorBeanFromServletContext(request));	
+		/*
+		 * Path Variables for Refund URL
+		 */
 		
-		model.addAttribute("orderId", orderId); //Rendered in Refund request
+		model.addAttribute(ORDER_ID, orderId); 
+		
+		model.addAttribute(PAYPAL_ID, order.getServiceDetail().getServiceId());
+		
+		model.addAttribute(CAPTURE_ID, order.getCaptureId());
 		
 		return "jsp/paymentStatus";
 		
@@ -187,6 +198,9 @@ public class PaymentStatusController {
 		}
 		else if(serviceDetail.getCaptureId() == null)
 			err = "ServiceDetail#captureId ";
+		
+		else if(serviceDetail.getServiceId() == null)
+			err = "ServiceDetail#serviceId";
 		
 		if(!err.isEmpty()) {
 			err = "Null OrderPayment attributes: " + err;

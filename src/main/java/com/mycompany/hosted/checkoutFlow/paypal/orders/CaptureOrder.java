@@ -28,7 +28,7 @@ import com.mycompany.hosted.checkoutFlow.exceptions.ProcessorResponseNullExcepti
 import com.mycompany.hosted.checkoutFlow.paypal.orders.PaymentDetails.CaptureStatusEnum;
 import com.mycompany.hosted.checkoutFlow.paypal.orders.PaymentDetails.FailedReasonEnum;
 import com.mycompany.hosted.checkoutFlow.paypal.orders.PaymentDetails.GetDetailsStatus;
-import com.mycompany.hosted.checkoutFlow.paypal.rest.OrderId;
+
 import com.mycompany.hosted.exception_handler.EhrLogger;
 //import com.paypal.orders.Payer;
 import com.paypal.http.HttpResponse;
@@ -45,7 +45,10 @@ public class CaptureOrder {
 	private PayPalClient payClient;
 	
 	boolean testRecoverableException = false;
-	boolean testCaptureId = true;
+	boolean testCaptureId = false;
+	boolean testProcessorResponse = false;
+	
+	private String capturedPaymentId;
 	
 	
 	public String capture(RequestContext ctx) throws CheckoutHttpException  {		
@@ -62,13 +65,11 @@ public class CaptureOrder {
 		 
 		String statusResult = "";
 		
-		 HttpResponse<Order> response = null;
+		HttpResponse<Order> response = null;
 		 
 		 try {
 		 
 		evalDetails(details);	//throws to catch-block for null object or empty resource id	
-		
-		//evalServerId(request); --done in GetDetails
 		
 	    OrdersCaptureRequest request = new OrdersCaptureRequest(details.getPayPalResourceId());
 	    
@@ -88,14 +89,15 @@ public class CaptureOrder {
 	    
 	    statusResult = initCaptureId(order, details,json); //"success" or "failed"
 	    
-		} catch(IOException | RuntimeException | ProcessorResponseNullException e) {
+		} catch(IOException | RuntimeException | ProcessorResponseNullException e) {		
 			
-			 OrderId payPalId = (OrderId)ctx.getExternalContext()
-				       .getSessionMap()
-				       .get(WebFlowConstants.PAYPAL_SERVER_ID);
+			String payPalId = details == null ? null : details.getPayPalResourceId(); //Error on evalDetails()
 			
+			//persistOrderId = null
 			CheckoutHttpException httpEx = EhrLogger.initCheckoutException(e,
 					"capture", response, payPalId, null);
+			
+			httpEx.setCapturedPaymentId(this.capturedPaymentId);
 		    	
 		    	ctx.getExternalContext()
 		    	   .getSessionMap()
@@ -142,26 +144,26 @@ public class CaptureOrder {
 	  private void debugPrintOrder(Order order) {
 		  
 		  if(order == null)
-		    	this.throwIllegalArg("Order returned in HttpResponse is null.");	
+		    	this.throwIllegalArg("debugPrintOrder", "Order returned in HttpResponse is null.");	
 		  
 		  String err = "Order contains uninitialized fields: ";
 		  
 		   System.out.println("Printing captured order: ");
 		  
-		   System.out.println("Status: " + order.status()); //May not be initialized
+		   System.out.println("Status: " + order.status()); 
 		      
 		   System.out.println("Order ID: " + order.id());
 		   
 		   if(order.paymentSource() == null)
-	        	System.out.println("paymentSource is null"); 		      
-		 
+	        	System.out.println("paymentSource is null"); 			 
 		   
 		   List<PurchaseUnit> units = order.purchaseUnits();
 		   
 		   if(units == null) {
 			   err += " Order#List<PurchaseUnit> ";
 			   System.out.println(err);
-			   throwIllegalArg(err);
+			   this.throwIllegalArg("debugPrintOrder", err);
+			  
 		   }   
 		      
 		   PurchaseUnit purchaseUnit = order.purchaseUnits().get(0);
@@ -169,7 +171,7 @@ public class CaptureOrder {
 		   if(purchaseUnit == null) {
 			   err += " Order#PurchaseUnit ";
 			   System.out.println(err);
-			   throwIllegalArg(err);
+			   this.throwIllegalArg("debugPrintOrder", err);			  
 		   }
 		      
 		   PaymentCollection payments = purchaseUnit.payments();
@@ -177,7 +179,7 @@ public class CaptureOrder {
 		   if(payments == null) {
 			   err += " Order#PaymentCollection ";
 			   System.out.println(err);
-			   throwIllegalArg(err);
+			   this.throwIllegalArg("debugPrintOrder", err);	
 		   }
 		      
 		   List<Capture> captures = payments.captures();
@@ -185,11 +187,10 @@ public class CaptureOrder {
 		   if(captures == null || captures.isEmpty()) {
                err += " List<Capture> "	;	
                System.out.println(err);
-			   throwIllegalArg(err);
-		   }
-		   
-		 
-		     
+               this.throwIllegalArg("debugPrintOrder", err);	
+		   }  
+		
+		   this.capturedPaymentId = captures.get(0).id(); //Will throw for empty at initCaptureId()		 
 	  }
 	  
 	  private String initCaptureId(Order order, PaymentDetails details, String json) 
@@ -248,7 +249,8 @@ public class CaptureOrder {
 	      }
 	      
 	      if(isFailedCaptureStatus &&  !isFailedProcessorResponse && !isFailedStatusDetails)
-	    	  this.throwIllegalArg("Capture Status is FAILED, and StatusDetails and "
+	    	  this.throwIllegalArg("initCaptureId",
+	    			  "Capture Status is FAILED, and StatusDetails and "
 	    			  + "ProcessorResponse indicate success");
 	      
 	      boolean failed =  isFailedStatusDetails || isFailedProcessorResponse;
@@ -259,12 +261,14 @@ public class CaptureOrder {
 	    		  && details.getCompletionStatus().equals(GetDetailsStatus.COMPLETED) 
 	    		  && isNullOrEmpty(details.getTransactionId())) {
 	    		  
-	    		  this.throwIllegalArg("Capture Status is COMPLETED and captureId is null");
+	    		  this.throwIllegalArg("initCaptureId",
+	    				  "Capture Status is COMPLETED and captureId is null");
 	      }	 
 	      
 	      if(this.testCaptureId) {
 	    	  testCaptureId = false;
-	    	  this.throwIllegalArg("Deserialized Order does not contain a CaptureId");
+	    	  this.throwIllegalArg("initCaptureId",
+	    			  "Test: Deserialized Order does not contain a CaptureId");
 	      }
 	      
 	      if(failed) 
@@ -283,9 +287,9 @@ public class CaptureOrder {
 		  if(processor == null) {
 			 EhrLogger.consolePrint(this.getClass(), "debugPrintProcessorReponse",
 					 "Processor is null");
-			 throw new ProcessorResponseNullException();
-			 
-		  
+			 throw new ProcessorResponseNullException(EhrLogger.doMessage(this.getClass(),
+					 "debugPrintProcessorResponseOrThrow", "ProcessorResponse is null")
+					 );		  
 		  }
 		  else EhrLogger.consolePrint(this.getClass(), "debugPrintProcessorReponse",
 					 "Printing fields of ProcessorResponse: ");
@@ -294,6 +298,13 @@ public class CaptureOrder {
 				  processor.avsCode(), processor.cvvCode(), processor.responseCode());
 		  
 		  System.out.println(line);
+		  
+		  if(this.testProcessorResponse) {
+			  testProcessorResponse = false;
+			  throw new ProcessorResponseNullException(EhrLogger.doMessage(this.getClass(),
+						 "debugPrintProcessorResponseOrThrow", "Test: ProcessorResponse is null")
+						 );		  
+		  }
 		  
 	  }
 	  
@@ -315,7 +326,7 @@ public class CaptureOrder {
 		 return false;
 	 }
 	 
-     private void throwIllegalArg(String message) {
+     private void throwIllegalArg(String method, String message) {
 		  
 		  throw new IllegalArgumentException(this.getClass().getCanonicalName()
 				  + "#captureOrder: " + message);

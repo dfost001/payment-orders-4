@@ -11,11 +11,15 @@ public class CheckoutHttpException extends Exception {
 	
 	private boolean isExpired = false;
 	
-	private Integer persistOrderId;
-	
 	private Integer responseStatus = -1;
 	
+	private Integer persistOrderId;
+	
+	private String capturedPaymentId;
+	
 	private String payPalId;
+	
+	private String refundId;
 	
 	public CheckoutHttpException(Throwable cause, String method) {
 		
@@ -77,6 +81,22 @@ public class CheckoutHttpException extends Exception {
 
 	public void setPayPalId(String payPalId) {
 		this.payPalId = payPalId;
+	}
+
+	public String getCapturedPaymentId() {
+		return capturedPaymentId;
+	}
+
+	public void setCapturedPaymentId(String capturedPaymentId) {
+		this.capturedPaymentId = capturedPaymentId;
+	}
+
+	public String getRefundId() {
+		return refundId;
+	}
+
+	public void setRefundId(String refundId) {
+		this.refundId = refundId;
 	}
 	
     

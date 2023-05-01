@@ -39,7 +39,8 @@ import org.springframework.webflow.execution.RequestContext;
 @Component
 public class GetOrderDetails  {
 	
-	 private boolean testException;	
+	 private boolean testRecoverableException;
+	 private boolean testPaymentSourceNullException;
 	 
 	 private String debugIntegrationType = "AdvancedCheckout" ;
 	
@@ -48,7 +49,8 @@ public class GetOrderDetails  {
 	
 	public GetOrderDetails() {
 		
-		testException = true;
+		testRecoverableException = false;
+		testPaymentSourceNullException = false;
 	}
 	
 	 public String getOrder(RequestContext ctx, MyFlowAttributes flowAttrs) 
@@ -63,9 +65,9 @@ public class GetOrderDetails  {
 		    
 		    try {
 		    	
-		       orderId = evalOrderId(ctx); //throws IllegalArgument for null or not equal Id's
+		       orderId = evalOrderId(ctx); //throws IllegalArgument for null
 		       
-		       this.compareScriptToServerId(ctx, orderId);
+		       this.compareScriptToServerId(ctx, orderId); //throws if not equal
 		       
 		       Customer customer = handleNullCustomer(ctx);
 		    
@@ -78,7 +80,7 @@ public class GetOrderDetails  {
 		    	  
 		    	  flowAttrs.setErrorGetDetails(false);
 		       }
-		       if(testException) {
+		       if(testRecoverableException) {
 				   
 			      handleTestException(ctx);
 		       }
@@ -92,18 +94,17 @@ public class GetOrderDetails  {
 		       if(!err.isEmpty())
 		    	throw new IllegalArgumentException(err);
 		    
-		       initOrderDetails(paymentDetails,response, ctx, customer);
+		       initOrderDetails(paymentDetails,response, ctx, customer); //throws test PaymentSourceNullException
 		    
-               ctx.getExternalContext().getSessionMap()
-                 .put(WebFlowConstants.PAYMENT_DETAILS, paymentDetails);      
+                 
               
 		    
 		    } catch(IOException | IllegalArgumentException | PaymentSourceNullException ex) {
 		    	
-		       // CheckoutHttpException httpEx = new CheckoutHttpException(ex, "getOrder");
+		       String payPalId = orderId == null ? null : orderId.getId(); //Null if not in the session
 		    	
 		    	CheckoutHttpException httpEx = EhrLogger.initCheckoutException(ex,
-		    			"getOrder", response, orderId, null);
+		    			"getOrder", response, payPalId, null);
 		    	
 		    	ctx.getExternalContext()
 		    	   .getSessionMap()
@@ -112,6 +113,9 @@ public class GetOrderDetails  {
 		    	throw httpEx;
 		  
 		    } 
+		    
+		    ctx.getExternalContext().getSessionMap()
+            .put(WebFlowConstants.PAYMENT_DETAILS, paymentDetails);  
 		    
 		    GetDetailsStatus detailsStatus = paymentDetails.getCreatedStatus();
 		    
@@ -138,9 +142,9 @@ public class GetOrderDetails  {
 	 
   private void handleTestException(RequestContext ctx) throws CheckoutHttpException {
 	  
-	   this.testException = false;			    
+	   this.testRecoverableException = false;			    
 	    
-	    CheckoutHttpException ex = new CheckoutHttpException(new Exception("Testing Exception"),
+	    CheckoutHttpException ex = new CheckoutHttpException(new Exception("Testing Recoverable Exception"),
 	    		"getOrder");
 	    
 	    ex.setTestException(true);
@@ -162,7 +166,7 @@ public class GetOrderDetails  {
 	 String err = "";
 		
 	 if (orderId == null || orderId.getId() == null || orderId.getId().isEmpty())
-			err += "Cannot find created orderId in the session. ";
+			err += "Cannot find created orderId in the session or Id is not assigned. ";
 		
 	 if(!err.isEmpty())
 			EhrLogger.throwIllegalArg(this.getClass(), "getOrder", err);	
@@ -211,10 +215,12 @@ public class GetOrderDetails  {
 		 details.setCreateTime(order.createTime());		 		
 		 
 		 if(debugIntegrationType.equals("AdvancedCheckout"))		 
-		     initPaymentSourceOrThrow(order, details);	//throws PaymentSourceNull 	
+		     initPaymentSourceOrThrow(order, details);	//throws PaymentSourceNull 		
 		 
 		 if(order.payer() != null) //Standard checkout or PayPal Login
 			 initCardHolderFromPayer(details,order, customer, request);		
+		 
+		
 		
 	 }
 	 
@@ -274,29 +280,27 @@ public class GetOrderDetails  {
 		System.out.println("GetOrderDetails#debugPrintOrder:");
 		
 		if(order == null) {
-			err += "Details: Order is null";
+			err += "GetOrderDetails: HttpResponse<Order> is null";
 			System.out.println(err);
 			return err;
 		}
 		String id = order.id();
 		
 		if(id == null || id.isEmpty()) {
-			err += "Details: Order ID in deserialized response is null or empty";		
+			err += "GetOrderDetails: HttpResponse<Order>: Order ID in deserialized response is null or empty. ";		
 			System.out.println(err);
-			return err;
+			
 		}
 		
 		List<PurchaseUnit> units = order.purchaseUnits();
 		
 		if(units == null || units.isEmpty()) {
 			
-			err += "List<PurchaseUnit> is empty";
+			err += "GetOrderDetails: HttpResponse<Order>: List<PurchaseUnit> is empty. ";
 			System.out.println(err);
-			return err;
+			
 		}			
-		
-		
-		return err; //empty message
+		return err; 
 	}
 
 		
@@ -306,12 +310,14 @@ public class GetOrderDetails  {
 		PaymentSource source = order.paymentSource();
 		
 		if(source == null) {
-			System.out.println("GetOrderDetails#initPaymentSourceOrThrow: source is null");
-			throw new PaymentSourceNullException();
+			System.out.println("GetOrderDetails#initPaymentSourceOrThrow: PaymentSource is null");
+			throw new PaymentSourceNullException("GetOrderDetails#initPaymentSourceOrThrow: "
+					+ "PaymentSource is null");
 		}
 		if(source.card() == null) {
 			System.out.println("GetOrderDetails#initPaymentSourceOrThrow: source.card is null");
-			throw new PaymentSourceNullException();
+			throw new PaymentSourceNullException("GetOrderDetails#initPaymentSourceOrThrow: "
+					+ "PaymentSource.card is null");
 		}
 		
 		Card card = source.card();
@@ -330,6 +336,12 @@ public class GetOrderDetails  {
 		details.setExpiry(card.expiry()); //empty without another connection
 		
 		details.setCardType(card.brand());
+		
+		 if(this.testPaymentSourceNullException) {
+			 this.testPaymentSourceNullException = false;
+			 throw new PaymentSourceNullException("GetOrderDetails#initPaymentSourceOrThrow: "
+						+ "Testing Exception: PaymentSource.card is null");
+		 }
 		
 	}
 	
@@ -424,7 +436,9 @@ public class GetOrderDetails  {
 		     }		 
 		
 		     details.setBillingEmail(order.payer().email().toLowerCase());			
-	}	
+	}
+	
+	
 	
 	/*private void debugPrintHeaders(HttpResponse<Order> response) {
 	

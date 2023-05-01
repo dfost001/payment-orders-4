@@ -2,6 +2,7 @@ package com.mycompany.hosted.checkoutFlow.exceptions;
 
 public class CheckoutErrModel {
 	
+	private CheckoutHttpException exception;
 	private String uuid;
 	private String message;
 	private String messageTrace;
@@ -13,6 +14,14 @@ public class CheckoutErrModel {
 	private String retUrl;
 	private String cause;
 	
+	
+	
+	public CheckoutHttpException getException() {
+		return exception;
+	}
+	public void setException(CheckoutHttpException ex) {
+		this.exception = ex;
+	}
 	public String getUuid() {
 		return uuid;
 	}

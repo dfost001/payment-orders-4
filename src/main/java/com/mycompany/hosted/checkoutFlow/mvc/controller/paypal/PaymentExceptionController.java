@@ -34,7 +34,7 @@ public class PaymentExceptionController {
 		
 		private final String errRecoverable = "The payment service is temporarily unavailable. ";
 				
-		private final String errFatal = "An error occurred. Please contact support to complete your order.";		
+		private final String errFatal = "A non-recoverable error occurred. Please contact support to complete your order.";		
 		
 		@GetMapping(value="paymentException/initErrorModel")
 		public String  initModel(@RequestParam(WebFlowConstants.CHECKOUT_EXCEPTION_REQUEST_PARAM)
@@ -82,6 +82,8 @@ public class PaymentExceptionController {
 				return initTestRecoverable(ex, id);
 			}
 			CheckoutErrModel err = new CheckoutErrModel();
+			
+			err.setException(ex);
 			
 			err.setUuid(id);
 			

@@ -17,7 +17,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.mycompany.hosted.checkoutFlow.WebFlowConstants;
 import com.mycompany.hosted.checkoutFlow.exceptions.CheckoutHttpException;
-import com.mycompany.hosted.checkoutFlow.exceptions.RefundPaymentException;
+import com.mycompany.hosted.checkoutFlow.exceptions.OrderNotRetrievableRefundException;
+import com.mycompany.hosted.checkoutFlow.exceptions.RefundIdException;
+
 import com.mycompany.hosted.checkoutFlow.jpa.CustomerJpa;
 import com.mycompany.hosted.checkoutFlow.paypal.orders.GetOrderDetails;
 import com.mycompany.hosted.checkoutFlow.paypal.orders.PayPalClient;
@@ -52,7 +54,7 @@ public class RefundController {
 	
 	private boolean testRetrieveEx = true;
 	
-	private boolean testPrintResponseOrThrow = false;
+	private boolean testPrintResponseOrThrow = true;
 
 	@Autowired
 	private PayPalClient payPalClient;
@@ -64,43 +66,53 @@ public class RefundController {
 	
 	private ErrorDetailBean errorBean;
 	
-	@RequestMapping(value="/refund/request/{orderId}", method=RequestMethod.GET)
+	@RequestMapping(value="/refund/request/{orderId}/{serviceId}/{captureId}", method=RequestMethod.GET)
 	public String refund(@PathVariable("orderId") Integer orderId,
+			@PathVariable("serviceId") String payPalId,
+			@PathVariable("captureId") String captureId,
 			HttpServletRequest request, RedirectAttributes redirectAttrs) 
-					throws CheckoutHttpException, RefundPaymentException {				
+					throws CheckoutHttpException {				
 			
 		this.httpRequest = request;
 		
-		OrderPayment orderPayment = processOrder(orderId);
+		HttpResponse<Refund> response = null;	
 		
-		if(this.alreadyRefunded(orderPayment)) {
+		OrderPayment orderPayment = null;
+		
+		String refundId = null;
+		
+	try {	
+		   orderPayment = processOrder(orderId); //Throws RefundPaymentException for OrderNotFound
+		
+		   if(this.alreadyRefunded(orderPayment)) {
 			
 			redirectAttrs.addFlashAttribute(ALREADY_REFUNDED_KEY, true);
 			redirectAttrs.addFlashAttribute(PaymentStatusController.ORDER, orderPayment);
 			return REDIRECT_STATUS_URL + orderId;
-		}
+		   }
 		
-		CapturesRefundRequest refundRequest = new CapturesRefundRequest(orderPayment.getCaptureId());
+		   CapturesRefundRequest refundRequest = new CapturesRefundRequest(orderPayment.getCaptureId());
 		
-		refundRequest.requestBody(new RefundRequest());
+		   refundRequest.requestBody(new RefundRequest());
 		
-		refundRequest.prefer("return=representation");
+		   refundRequest.prefer("return=representation");	   
 		
-		HttpResponse<Refund> response = null;
-		
-		try {
-		
-		 response = payPalClient.client().execute(refundRequest);
+		   response = payPalClient.client().execute(refundRequest);
 		 
-		 System.out.println("RefundController#refund: statusCode = " + response.statusCode());
+		   System.out.println("RefundController#refund: statusCode = " + response.statusCode());
 		 
-		 debugPrintResponseOrThrow(response.result()); //To do: evaluate status field: Throws test   
+		   refundId = debugPrintResponseOrThrow(response.result()); //To do: evaluate status field: Throws test   
 		
 		
-		} catch (IOException | RuntimeException e) {
+		} catch (IOException | RuntimeException | RefundIdException 
+				| OrderNotRetrievableRefundException e) {
 			
 			CheckoutHttpException checkoutEx = EhrLogger.initCheckoutException(e, 
-					"refund", response, orderId);
+					"refund", response, payPalId, orderId);
+			
+			checkoutEx.setCapturedPaymentId(captureId);
+			
+			checkoutEx.setRefundId(refundId);
 			
 			String id = ServletContextAttrs.setException(checkoutEx);
 			
@@ -119,7 +131,7 @@ public class RefundController {
 		
 	}
 	
-	private OrderPayment processOrder(int orderId) throws RefundPaymentException{
+	private OrderPayment processOrder(int orderId) throws OrderNotRetrievableRefundException{
 		
 		if(testRetrieveEx) {
 			
@@ -129,7 +141,7 @@ public class RefundController {
 		else return findOrder(orderId);
 	}
 	
-	private OrderPayment findOrder(Integer orderId) throws RefundPaymentException {		
+	private OrderPayment findOrder(Integer orderId) throws OrderNotRetrievableRefundException {		
 		
 		ErrorDetailBean errorBean = WebFlowConstants.errorBeanFromServletContext(httpRequest);
 		
@@ -144,7 +156,7 @@ public class RefundController {
 				EhrLogger.throwIllegalArg(this.getClass(), "processOrder", 
 						"OrderId is negative and not found in the ErrorDetailBean. ");
 			
-			 return orderFromDb(orderId);
+			 return orderFromDb(orderId); // throws OrderNotRetrievable
 		}
 		
 		if(errDetail.getOrder() == null)
@@ -157,7 +169,7 @@ public class RefundController {
 	/*
 	 * Note: Null order added to Error Bean on failure to retrieve
 	 */
-	private OrderPayment orderFromDb(Integer orderId) throws RefundPaymentException {
+	private OrderPayment orderFromDb(Integer orderId) throws OrderNotRetrievableRefundException {
 		
 		OrderPayment order = null;
 		
@@ -173,13 +185,9 @@ public class RefundController {
 			
 			errorBean.addDetailToList(null, orderId, ex,
 					this.getClass().getCanonicalName() + "#orderFromDb", 
-					ErrorDetail.ErrorDetailReason.NOT_RETRIEVABLE_FOR_REFUND);
+					ErrorDetail.ErrorDetailReason.NOT_RETRIEVABLE_FOR_REFUND);			
 			
-			EhrLogger.consolePrint(this.getClass(), "orderFromDb", "Order NOT found:" + orderId);
-			
-			throw new RefundPaymentException("Persistence Exception:" +
-			     "Unable to retrieve order to process refund: " + ex.getMessage(),
-			     ex, orderId);			
+			throw new OrderNotRetrievableRefundException(ex, orderId);
 		}
 		return order;
 	}
@@ -287,22 +295,22 @@ public class RefundController {
 		
 	}*/
 	
-	private void debugPrintResponseOrThrow(Refund refund) {		
+	private String debugPrintResponseOrThrow(Refund refund) throws RefundIdException {		
 		
 		System.out.println("RefundController#debugPrintResponse: id=" 
 			 + refund.id() + " amount="
-		     + refund.amount().value());	
+		     + refund.amount().value());			
+		
+		if(refund.id() == null)
+		   throw new RefundIdException();
 		
 		if(testPrintResponseOrThrow) {
 			testPrintResponseOrThrow = false;
-			throw new IllegalArgumentException(EhrLogger.doMessage(
-				this.getClass(), "debugPrintResponseOrThrow", "Testing: Refund Id is null in the Response"));
+			throw new RefundIdException(EhrLogger.doMessage(
+				this.getClass(), "debugPrintResponseOrThrow", "Testing: Likey refunded, but Refund Id is null in the Response"));
 		}
-			
 		
-		if(refund.id() == null)
-		   throw new RuntimeException(EhrLogger.doMessage(
-				   this.getClass(), "debugPrintResponseOrThrow", "Refund Id is null in the Response"));
+		return refund.id();
 		
 	}
 	
