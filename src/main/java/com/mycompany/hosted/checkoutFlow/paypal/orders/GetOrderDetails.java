@@ -54,7 +54,7 @@ public class GetOrderDetails  {
 	}
 	
 	 public String getOrder(RequestContext ctx, MyFlowAttributes flowAttrs) 
-			 throws CheckoutHttpException, PaymentSourceNullException {		 
+			 throws CheckoutHttpException {		 
 		  
 		   
 		   PaymentDetails paymentDetails = null;
@@ -94,10 +94,7 @@ public class GetOrderDetails  {
 		       if(!err.isEmpty())
 		    	throw new IllegalArgumentException(err);
 		    
-		       initOrderDetails(paymentDetails,response, ctx, customer); //throws test PaymentSourceNullException
-		    
-                 
-              
+		       initOrderDetails(paymentDetails,response, ctx, customer); //throws test PaymentSourceNullException              
 		    
 		    } catch(IOException | IllegalArgumentException | PaymentSourceNullException ex) {
 		    	
@@ -291,7 +288,18 @@ public class GetOrderDetails  {
 			System.out.println(err);
 			
 		}
+		if(order.status() == null || order.status().isEmpty()) {
+			err += "GetOrderDetails: Order#status in deserialized response is null or empty. ";		
+			System.out.println(err);
+			
+		}
 		
+		if(order.createTime() == null || order.createTime().isEmpty()) {
+			err += "GetOrderDetails: Order#createTime in deserialized response is null or empty. ";		
+			System.out.println(err);
+			
+		}
+		     
 		List<PurchaseUnit> units = order.purchaseUnits();
 		
 		if(units == null || units.isEmpty()) {

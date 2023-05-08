@@ -50,8 +50,17 @@ public class CaptureOrder {
 	
 	private String capturedPaymentId;
 	
+	private Capture capture;
+	
+	private void resetProperties() {
+		
+		capturedPaymentId = "";
+		capture = null;
+	}
 	
 	public String capture(RequestContext ctx) throws CheckoutHttpException  {		
+		
+		resetProperties();
 		 
 		 if(testRecoverableException) {		 
 		 
@@ -85,7 +94,7 @@ public class CaptureOrder {
 	    
 	    debugPrintOrder(order); //throws Runtime for uninitialized fields to catch block
 	    
-	    String json = GetOrderDetails.debugPrintJson(response);	    
+	    String json = GetOrderDetails.debugPrintJson(response);	 //Json re-serialized   
 	    
 	    statusResult = initCaptureId(order, details,json); //"success" or "failed"
 	    
@@ -154,14 +163,14 @@ public class CaptureOrder {
 		      
 		   System.out.println("Order ID: " + order.id());
 		   
-		   if(order.paymentSource() == null)
-	        	System.out.println("paymentSource is null"); 			 
-		   
+		   if(order.paymentSource() == null) //Evaluated in GetDetails
+	        	System.out.println("paymentSource is null"); 		   
+		  
 		   List<PurchaseUnit> units = order.purchaseUnits();
 		   
 		   if(units == null) {
 			   err += " Order#List<PurchaseUnit> ";
-			   System.out.println(err);
+			  
 			   this.throwIllegalArg("debugPrintOrder", err);
 			  
 		   }   
@@ -170,39 +179,109 @@ public class CaptureOrder {
 		   
 		   if(purchaseUnit == null) {
 			   err += " Order#PurchaseUnit ";
-			   System.out.println(err);
+			  
 			   this.throwIllegalArg("debugPrintOrder", err);			  
 		   }
 		      
 		   PaymentCollection payments = purchaseUnit.payments();
 		   
 		   if(payments == null) {
-			   err += " Order#PaymentCollection ";
-			   System.out.println(err);
+			   err += " Order#PaymentCollection ";			   
 			   this.throwIllegalArg("debugPrintOrder", err);	
 		   }
 		      
-		   List<Capture> captures = payments.captures();
+		   List<Capture> captures = payments.captures();		  
 		      
 		   if(captures == null || captures.isEmpty()) {
-               err += " List<Capture> "	;	
-               System.out.println(err);
+               err += "Order#PaymentCollection#List<Capture> "	;              
                this.throwIllegalArg("debugPrintOrder", err);	
-		   }  
+		   }
+		   
+		   this.capture = captures.get(0);
+		   
+		   this.capturedPaymentId = captures.get(0).id(); //Will throw for empty at initCaptureId()	
+			 
+		   err = new String();
+		   
+		   if(isNullOrEmpty(order.status())) {
+			   err += " Order#status " ;			   
+		   }
 		
-		   this.capturedPaymentId = captures.get(0).id(); //Will throw for empty at initCaptureId()		 
+		   if(isNullOrEmpty(captures.get(0).status())) {
+			   err += "Capture#status ";
+		   }
+		   
+		   if(!err.isEmpty()) {   		  
+			   err = "Order contains uninitialized fields: " + err;		     
+			   this.throwIllegalArg("debugPrintOrder", err);
+		   }
 	  }
 	  
 	  private String initCaptureId(Order order, PaymentDetails details, String json) 
-	         throws ProcessorResponseNullException {				  
+		         throws ProcessorResponseNullException {	
 		  
-		  PurchaseUnit purchaseUnit = order.purchaseUnits().get(0);
-	      
-	      PaymentCollection payments = purchaseUnit.payments();
-		  
-	      List<Capture> captures = payments.captures();	      
-	      
-	      Capture capture = captures.get(0);	
+		  System.out.println("Entering CaptureOrder#initCaptureId");   	  		      
+	     
+	      if(order.status().equals(CaptureStatusEnum.COMPLETED.name()) 
+	    		  && isNullOrEmpty(capture.id())) {
+	    		  
+	    		  this.throwIllegalArg("initCaptureId",
+	    				  "Capture Status is COMPLETED and captureId is null");
+	      }	 
+		      
+		  debugPrintProcessorResponseOrThrow(capture); 
+		      
+		  System.out.println(MessageFormat.format("{0}: capture.status={1} transId={2} order.status={3}", 
+		    		  "CaptureOrder#initCaptureId", capture.status(), capture.id(), order.status()));	    
+		      
+		      boolean isFailedStatusDetails = false;
+		      boolean isFailedCaptureStatus = false;
+		      boolean isFailedProcessorResponse = false;
+		      
+		      if(capture.captureStatusDetails() != null) {	    	  
+		    	 
+		    	  String reason = capture.captureStatusDetails().reason();
+		    	 
+		    	  details.setStatusReason(FailedReasonEnum.valueOf(reason));	 
+		    	  
+		    	  System.out.println("CaptureOrder#initCaptureId: captureStatusDetails=" + reason);
+		    	  
+		    	  isFailedStatusDetails = true;
+		      }
+		    	  
+		      if(capture.status().equals(CaptureStatusEnum.DECLINED.name())
+		    		  || capture.status().equals(CaptureStatusEnum.FAILED.name())) {       	  
+		    	  	    	  
+		    	 
+		    	  isFailedCaptureStatus = true;
+		      }
+		    	  
+		      if(isFailedProcessorCode(capture.processorResponse())) {
+		    	  isFailedProcessorResponse = true; //Probably not necessary since capture status will be DECLINED
+		      }
+		      
+		      //If status is FAILED/DECLINED and there is no reason -> Runtime
+		      if(isFailedCaptureStatus &&  !isFailedProcessorResponse && !isFailedStatusDetails)
+		    	  this.throwIllegalArg("initCaptureId",
+		    			  "Capture Status is FAILED, and StatusDetails and "
+		    			  + "ProcessorResponse indicate success");		      
+		     
+		      
+		      if(this.testCaptureId) {
+		    	  testCaptureId = false;
+		    	  this.throwIllegalArg("initCaptureId",
+		    			  "Test: Deserialized Order does not contain a CaptureId");
+		      }
+		      
+		      initPaymentDetails(order, details, json);	    
+		      
+		      if(isFailedCaptureStatus) 
+		    	  return "failed";
+		      
+		      return "success";		
+	  }
+	  
+	  private void initPaymentDetails(Order order, PaymentDetails details, String json) {		 	
 	      
 	      details.setCaptureStatus(CaptureStatusEnum.valueOf(capture.status()));
     	  
@@ -215,66 +294,7 @@ public class CaptureOrder {
 	      details.setProcessorResponse(capture.processorResponse());
 	      
 	      details.setCompletionStatus(GetDetailsStatus.valueOf(order.status()));
-	      
-	      debugPrintProcessorResponseOrThrow(capture); 
-	      
-	      System.out.println(MessageFormat.format("{0}: capture.status={1} transId={2} order.status={3}", 
-	    		  "CaptureOrder#initCaptureId", capture.status(), capture.id(), order.status()));	    
-	      
-	      boolean isFailedStatusDetails = false;
-	      boolean isFailedCaptureStatus = false;
-	      boolean isFailedProcessorResponse = false;
-	      
-	      if(capture.captureStatusDetails() != null) {	    	  
-	    	 
-	    	  String reason = capture.captureStatusDetails().reason();
-	    	 
-	    	  details.setStatusReason(FailedReasonEnum.valueOf(reason));	 
-	    	  
-	    	  System.out.println(MessageFormat.format("{0}: captureStatusDetails={1}", 
-		    		  "CaptureOrder#initCaptureId", reason));
-	    	  
-	    	  isFailedStatusDetails = true;
-	      }
-	    	  
-	      if(details.getCaptureStatus().equals(CaptureStatusEnum.DECLINED)
-	    		  || details.getCaptureStatus().equals(CaptureStatusEnum.FAILED)) {       	  
-	    	  	    	  
-	    	 
-	    	  isFailedCaptureStatus = true;
-	      }
-	    	  
-	      if(isFailedProcessorCode(capture.processorResponse())) {
-	    	  isFailedProcessorResponse = true; //Probably not necessary since capture status will be DECLINED
-	      }
-	      
-	      if(isFailedCaptureStatus &&  !isFailedProcessorResponse && !isFailedStatusDetails)
-	    	  this.throwIllegalArg("initCaptureId",
-	    			  "Capture Status is FAILED, and StatusDetails and "
-	    			  + "ProcessorResponse indicate success");
-	      
-	      boolean failed =  isFailedStatusDetails || isFailedProcessorResponse;
-	      
-	      // Even if FAILED and status is COMPLETED, the transactionId is assigned, but may not always
-	      // be true. So no error is thrown if failed and no Id.
-	      if(!failed  
-	    		  && details.getCompletionStatus().equals(GetDetailsStatus.COMPLETED) 
-	    		  && isNullOrEmpty(details.getTransactionId())) {
-	    		  
-	    		  this.throwIllegalArg("initCaptureId",
-	    				  "Capture Status is COMPLETED and captureId is null");
-	      }	 
-	      
-	      if(this.testCaptureId) {
-	    	  testCaptureId = false;
-	    	  this.throwIllegalArg("initCaptureId",
-	    			  "Test: Deserialized Order does not contain a CaptureId");
-	      }
-	      
-	      if(failed) 
-	    	  return "failed";
-	      
-	      return "success";		  
+		  
 	  }
 	  
 	
@@ -302,12 +322,11 @@ public class CaptureOrder {
 		  if(this.testProcessorResponse) {
 			  testProcessorResponse = false;
 			  throw new ProcessorResponseNullException(EhrLogger.doMessage(this.getClass(),
-						 "debugPrintProcessorResponseOrThrow", "Test: ProcessorResponse is null")
-						 );		  
-		  }
-		  
-	  }
+						 "debugPrintProcessorResponseOrThrow", "Test: ProcessorResponse is null"));		  
+		  }		  
+	  } //end debug
 	  
+	
 	 private boolean isFailedProcessorCode(ProcessorResponse response) {
 		 
 		 if((response.responseCode() != null && !response.responseCode().equals("0000"))
@@ -321,14 +340,18 @@ public class CaptureOrder {
 	  
 	 private boolean isNullOrEmpty(String value) {
 		 
-		 if(value == null || value.isEmpty())
+		 if(value == null || value.trim().isEmpty())
 			 return true;
 		 return false;
 	 }
 	 
      private void throwIllegalArg(String method, String message) {
 		  
-		  throw new IllegalArgumentException(this.getClass().getCanonicalName()
-				  + "#captureOrder: " + message);
+		  String err = this.getClass().getCanonicalName()
+				  + "#" + method + ": "  + message;
+		  
+		  System.out.println(err);
+		  
+		  throw new IllegalArgumentException(err);
 	  }
 }
