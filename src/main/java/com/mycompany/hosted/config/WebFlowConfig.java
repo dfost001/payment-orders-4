@@ -31,7 +31,9 @@ public class WebFlowConfig extends AbstractFlowConfiguration {
 		
 	    return getFlowExecutorBuilder(flowRegistry())	    		
 	    		.setMaxFlowExecutionSnapshots(0)
-	    		.build();
+	    		.build(); 
+		
+		// return getFlowExecutorBuilder(flowRegistry()).build();
 	}
 	
 	@Bean

@@ -133,7 +133,7 @@ public class EvalApplicationState {
 			 expectedOnEnter = this.entryPaymentDetails == null; 			
 			 expectedOnRender = entryCustomer == currentCustomer && currentPaymentDetails == null;		        
 	         detail = entryCustomer != currentCustomer ?
-		    		"Customer on-entry is not equal to current session. " : ""; //Not cloned until success 
+		    		"Customer on-entry is not equal to current session. " : ""; //Copy not set into session until exited 
 	         break;
 	         
 		case "showDetails":  
