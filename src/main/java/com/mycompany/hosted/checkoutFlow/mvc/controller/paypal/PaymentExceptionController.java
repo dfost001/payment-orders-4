@@ -87,34 +87,20 @@ public class PaymentExceptionController {
 			
 			err.setUuid(id);
 			
+			err.setErrMethod(ex.getMethod()); 
+			
             Throwable cause = EhrLogger.getRootCause(ex.getCause());
 			
-			String exceptionName = cause != null ? cause.getClass().getSimpleName()
-					: "CheckoutHttpException: Cause is null";
+			/* String exceptionName = cause != null ? cause.getClass().getSimpleName()
+					: "No inner cause"; -- Will always have a cause*/
 			
-			err.setCause(exceptionName);	
+			err.setCause(cause.getClass().getCanonicalName());	
 			
-			err.setResponseCode(ex.getResponseStatus());
-            
-			String contentType = "";
-			
-			//Content-Type is labeled as Error Content-Type
-			
-	        if(cause != null && cause.getClass() == HttpException.class) {			
-				
-				contentType = this.doContentType((HttpException)cause);				
-		    } 
-	        else contentType = "Only available for HttpException failed status" ;
-	      
-	        err.setErrContentType(contentType);
+			err.setResponseCode(ex.getResponseStatus());  		
 	        
-	        if(contentType.toLowerCase().contains("html"))
-	        	err.setMessageTrace(contentType); //For HTML, message will be the body
-	        else
-	        	err.setMessageTrace(EhrLogger.getMessages(ex, "<br />")); //Message trace
+	        err.setMessage(ex.getMessage());
 	        
-	        
-	        err.setMessage(ex.getMessage());	      
+	        initMessageTraceByContent(err, ex, cause);
 	       
 	        //To do: eval status other codes: 422
 	        if(ex.getResponseStatus().equals(503)) {
@@ -127,9 +113,7 @@ public class PaymentExceptionController {
 	        	err.setRecoverable(false);
 	        	
 	        	err.setFriendly(errFatal);
-	        }          
-	        
-	        err.setErrMethod(ex.getMethod());  	  	       
+	        }         	        	  	       
 	        
 	        if(err.getErrMethod().contains("refund"))
 	        	err.setRecoverable(false); // Currently, there is no code to configure a link back to PaymentStatusController
@@ -138,6 +122,28 @@ public class PaymentExceptionController {
 	        
 	       
 	   }
+		
+	private void initMessageTraceByContent(CheckoutErrModel err, Exception ex, Throwable cause)	{
+		
+		String contentType = "";
+		
+		//Content-Type is labeled as Error Content-Type
+		
+        if(cause != null && cause.getClass() == HttpException.class) {			
+			
+			contentType = this.getContentType((HttpException)cause);				
+	    } 
+        else contentType = "Only available for HttpException failed status" ;
+      
+        err.setErrContentType(contentType);
+        
+        if(contentType.toLowerCase().contains("html"))
+        	err.setMessageTrace(contentType); //For HTML, message will be the body
+        else
+        	err.setMessageTrace(EhrLogger.getMessages(ex, "<br />")); //Message trace
+        
+		
+	}
 	 /*
 	  * Note: If error occurs at getDetails there will be no PAYMENT_DETAILS to remove	
 	  */
@@ -148,7 +154,7 @@ public class PaymentExceptionController {
 				session.removeAttribute(WebFlowConstants.PAYMENT_DETAILS);		 
 	 }
 		
-	  private String doContentType(HttpException ex) {
+	  private String getContentType(HttpException ex) {
 		  
 		  Headers headers = ex.headers();
 		  
@@ -183,6 +189,8 @@ public class PaymentExceptionController {
 	        CheckoutErrModel err = new CheckoutErrModel();	
 	        
 	        Throwable cause = EhrLogger.getRootCause(ex);
+	        
+	        err.setException(ex);
 	        
 	        err.setCause(cause.getClass().getCanonicalName());
 	        

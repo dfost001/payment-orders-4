@@ -95,7 +95,7 @@ public class CreateOrder2 {
 	      
 	    } catch (IOException | IllegalArgumentException io)  {	    	    	
 	    	
-	    	//payPalId=null, persistOrderId=null	    	
+	    	/* payPalId=null, persistOrderId=null */    	
 	    	throw EhrLogger.initCheckoutException(io, "create", response, null, null); //ControllerAdvice
 	    	
 	    }	    

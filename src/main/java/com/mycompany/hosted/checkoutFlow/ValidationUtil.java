@@ -53,7 +53,9 @@ public class ValidationUtil  implements MessageSourceAware{
 		
 		messageSource = src;
 	}
-	
+	/*
+	 * Note: It is necessary to cast to Super. Fields are not declared on derived.
+	 */
 	public MessageContext validate(Object obj) {
 		
 		PostalAddress postal = null;
