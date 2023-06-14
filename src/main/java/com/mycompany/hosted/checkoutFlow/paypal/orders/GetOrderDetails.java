@@ -203,21 +203,17 @@ public class GetOrderDetails  {
 		 
 		 Order order = response.result();
 		 
-		 details.setCreatedStatus(GetDetailsStatus.valueOf(order.status()));
-		 
-		 String json = debugPrintJson(response);
-		 
-		 details.setJson(json);
-		 
-		 details.setCreateTime(order.createTime());		 		
-		 
 		 if(debugIntegrationType.equals("AdvancedCheckout"))		 
-		     initPaymentSourceOrThrow(order, details);	//throws PaymentSourceNull 		
+		     initPaymentSourceOrThrow(order, details);	//throws PaymentSourceNull 		 
+		 
+		 details.setCreatedStatus(GetDetailsStatus.valueOf(order.status()));		
+		 
+		 details.setJson(debugPrintJson(response));
+		 
+		 details.setCreateTime(order.createTime());						
 		 
 		 if(order.payer() != null) //Standard checkout or PayPal Login
-			 initCardHolderFromPayer(details,order, customer, request);		
-		 
-		
+			 initCardHolderFromPayer(details,order, customer, request);				
 		
 	 }
 	 

@@ -79,11 +79,7 @@
     
 <div class="card_container" >
 
-  <c:if test="${paymentSourceNullException ne null}">
-     <div class="alert alert-danger" style="margin-bottom:8px">
-         ${paymentSourceNullException.message}
-     </div>
-  </c:if>
+ 
   
   <form id="card-form">
    <div class="divLeftContent">

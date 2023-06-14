@@ -21,7 +21,7 @@ import com.mycompany.hosted.exception_handler.EhrLogger;
 @Repository
 public class CustomerJpaImpl implements CustomerJpa {
 	
-	private boolean testOrderException = true;
+	private boolean testOrderException = false;
 	
 	@PersistenceContext(unitName="springMvcSample")
 	private EntityManager em;

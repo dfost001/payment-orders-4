@@ -76,13 +76,10 @@
      
      <action-state id="processLogin">       
         <evaluate expression = "createCustomerFlow.processLogin(requestParameters.customerId, 
-               flowRequestContext)" result="requestScope.customer"/> 
-                             
+               flowRequestContext)" result="requestScope.customer"/>                              
         <transition on="success"  to="selectShipAddress"  >
-            <evaluate expression="createCustomerFlow.customerIntoSession(customer, 
-            flowRequestContext)" />
-        </transition>
-        
+             <set name="externalContext.sessionMap.customer" value="customer" />           
+        </transition>        
         <transition 
             on-exception="com.mycompany.hosted.checkoutFlow.jpa.CustomerNotFoundException"
             to="login">                     
@@ -151,12 +148,11 @@
           <evaluate expression="payPalClient.getClientId()"  result="viewScope.clientId" />                                   
        </on-entry>
        
-       <on-render>                          
+       <on-render>
+          <evaluate expression="webflowDebug.debugPrint(flowRequestContext, 'on-render')"  />                         
           <evaluate expression="webflowDebug.evalCartOnRender(flowRequestContext, cart, myFlowAttrs)" /> 
           <evaluate expression="evalApplicationState.evalState(flowRequestContext)" />  
           <evaluate expression="generateClientToken.generate()"  result="viewScope.clientToken"  />                
-          <set name="viewScope.allMessages"    value="flashScope.allMessages"  /> 
-          <set name="viewScope.paymentSourceNullException" value="flashScope.paymentSourceNullException" />                    
        </on-render>      
        
        <transition on="editShipAddress" to="selectShipAddress" />

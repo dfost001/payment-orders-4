@@ -1,10 +1,9 @@
 package com.mycompany.hosted.checkoutFlow;
 
-
 import java.util.Date;
 import java.util.List;
 
-import org.picketbox.util.StringUtil;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.webflow.core.collection.SharedAttributeMap;
@@ -17,19 +16,19 @@ import com.mycompany.hosted.checkoutFlow.paypal.orders.PaymentDetails;
 import com.mycompany.hosted.errordetail.ErrorDetail.ErrorDetailReason;
 import com.mycompany.hosted.errordetail.ErrorDetailBean;
 import com.mycompany.hosted.exception_handler.EhrLogger;
+import com.mycompany.hosted.formatter.StringUtil;
 import com.mycompany.hosted.model.Customer;
 import com.mycompany.hosted.model.PostalAddress;
+import com.mycompany.hosted.model.order.LineItemPayment;
 import com.mycompany.hosted.model.order.OrderPayment;
 import com.mycompany.hosted.model.order.OrderShipTo;
 import com.mycompany.hosted.model.order.ServiceDetail;
-
-import com.mycompany.hosted.model.order.LineItemPayment;
 
 @Component
 public class JpaPersistOrder {
 	
 	@Autowired
-	private CustomerJpa jpa;	
+	private CustomerJpa jpa;
 	
 	private ErrorDetailBean errorDetailBean;
 	
@@ -164,7 +163,7 @@ public class JpaPersistOrder {
 		String err = PaymentObjectsValidator.validateDetailsAfterCapture(details);
 		
 		if(!StringUtil.isNullOrEmpty(err))
-			EhrLogger.throwIllegalArg(this.getClass(), "initServiceDetail", err);
+			EhrLogger.throwIllegalArg(this.getClass(), "initServiceDetail", err); 
 		
 		ServiceDetail service = new ServiceDetail();
 		
@@ -272,4 +271,4 @@ public class JpaPersistOrder {
 	
 	
 
-} //end class
+}

@@ -134,7 +134,9 @@ public class MyFlowHandler extends AbstractFlowHandler {
 		 
 		 request.getSession().removeAttribute(WebFlowConstants.CHECKOUT_HTTP_EXCEPTION);
 		 
-		 String id = ServletContextAttrs.setException(ex);
+		//Static method on ServletContextAware @Component 
+		// See (com.mycompany.hosted.checkoutflow.servlet_context)		 
+		 String id = ServletContextAttrs.setException(ex); 
 		 
 		 return id;
 		 

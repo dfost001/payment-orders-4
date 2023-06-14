@@ -1,5 +1,6 @@
 package com.mycompany.hosted.checkoutFlow;
 
+import java.text.MessageFormat;
 import java.util.List;
 
 import org.springframework.stereotype.Component;
@@ -31,12 +32,9 @@ public class WebflowDebug {
 			throwApplicationException("throwEmptyCart", "Webflow Cart does not point to cart in Http session");
 		}
 
-		List<CartItem> items = cart.getCartList();
+		List<CartItem> items = cart.getCartList();		
 
-		if (items == null)
-			throwApplicationException("throwEmptyCart", "ShoppingCart#allItems returns null");
-
-		if (items.size() == 0) {
+		if (items == null || items.size() == 0) {
 
 			WebflowCartEmptyException ex = new WebflowCartEmptyException();
 
@@ -95,6 +93,19 @@ public class WebflowDebug {
     			+ " state=" + state;
     	
     	System.out.println(msg);
+    }
+    
+    public void debugPrint(RequestContext request, String phase) {
+    	
+    	//String phase = request.getCurrentEvent().getId(); //NullPointer
+    	
+    	String state = request.getCurrentState().getId();
+    	
+    	String format = MessageFormat.format("{0} phase={1} state={2}",
+    			"WebflowDebug#debugPrint executing:", phase, state);
+    	
+    	System.out.println(format);
+    	
     }
 
 
