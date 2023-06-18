@@ -125,7 +125,10 @@ public class EvalApplicationState {
 			expectedOnEnter =  entrySelectedAddress != null
 			   && entryPaymentDetails == null;		
 	        expectedOnRender = currentSelectedAddress != null
-			   && currentPaymentDetails == null;	        
+			   && currentPaymentDetails == null && entryCustomer == currentCustomer;	
+	        detail = entryCustomer != currentCustomer ?
+		    		"Customer on-entry is not equal to current session. (Browser navigation into card-form after an update) "
+	        		: ""; 
 	        break;
 	        
 		case "addressView":
