@@ -175,16 +175,19 @@ public class SelectAddressFlow {
 		if(postalSelected == null)
 		   return ;
 		
-		if(Customer.class.isAssignableFrom(postalEdited.getClass())) {			
+		if(Customer.class.isAssignableFrom(postalEdited.getClass())) {
+		    if(Customer.class.isAssignableFrom(postalSelected.getClass())) {			
 		
-			sessionMap.put(WebFlowConstants.SELECTED_POSTAL_ADDR, postalEdited); 
-			return;
+			   sessionMap.put(WebFlowConstants.SELECTED_POSTAL_ADDR, postalEdited); 			   
+			   return;
+		    }		    
 		}
-		
-		if(((ShipAddress)postalEdited).getId() == null) //Inserting
+		else if(Customer.class.isAssignableFrom(postalSelected.getClass()))
+			 return;
+		else if(((ShipAddress)postalEdited).getId() == null) //Inserting
 			return;
 		
-		if(((ShipAddress)postalEdited).getId().equals(
+		else if(((ShipAddress)postalEdited).getId().equals(
 				
 			((ShipAddress)postalSelected).getId()))
 			
