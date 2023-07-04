@@ -95,13 +95,11 @@ $(document).ready(function(){
 			message = "CVV-Security-Code: Three or Four digits are required."		
 		}
 		
-		var element = "<li>" + message + "</li>";
-		
-		//list.empty();
+		var element = "<li>" + message + "</li>";		
 		
 		list.show();
 		
-		list.prepend(element);
+		list.append(element);
 		
 	};
 	

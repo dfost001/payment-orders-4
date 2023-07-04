@@ -1,6 +1,10 @@
 package com.mycompany.hosted.checkoutFlow.mvc.controller.paypal;
 
 
+
+import java.net.SocketException;
+import java.net.UnknownHostException;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
@@ -31,10 +35,19 @@ public class PaymentExceptionController {
 	  public static final String ERR_GET_DETAIL = "ERR_GET_DETAIL";	
 	  
 	  public static final String ERR_ON_CAPTURE = "ERR_ON_CAPTURE";
+	  
+	  /*
+	   * Strings used by backing-beans to create the HttpCheckoutException
+	   * To do: Change to a public enum and revise backing-beans
+	   */
+	  private final String CREATE = "create";
+	  private final String GET_DETAILS = "getOrder";
+	  private final String CAPTURE = "capture" ;
+	  private final String REFUND = "refund" ;
 		
 		private final String errRecoverable = "The payment service is temporarily unavailable. ";
 				
-		private final String errFatal = "A non-recoverable error occurred. Please contact support to complete your order.";		
+		private final String errFatal = "A non-recoverable error occurred.";		
 		
 		@GetMapping(value="paymentException/initErrorModel")
 		public String  initModel(@RequestParam(WebFlowConstants.CHECKOUT_EXCEPTION_REQUEST_PARAM)
@@ -77,53 +90,47 @@ public class PaymentExceptionController {
 		
 		private CheckoutErrModel initErrorModel(CheckoutHttpException ex, String id) {
 			
-	       if(ex.isTestException()) {				
-				
-				return initTestRecoverable(ex, id);
-			}
+	      
 			CheckoutErrModel err = new CheckoutErrModel();
 			
-			err.setException(ex);
+			err.setException(ex); //Make Id fields accessible to EL
 			
 			err.setUuid(id);
 			
 			err.setErrMethod(ex.getMethod()); 
 			
+			err.setMessage(ex.getMessage());
+			
             Throwable cause = EhrLogger.getRootCause(ex.getCause());
 			
-			/* String exceptionName = cause != null ? cause.getClass().getSimpleName()
-					: "No inner cause"; -- Will always have a cause*/
+			 String exceptionName = cause != null ? cause.getClass().getCanonicalName()
+					: "No inner cause"; // Should always have a cause since exception is a wrapper
 			
-			err.setCause(cause.getClass().getCanonicalName());	
+			err.setCause(exceptionName);	
 			
-			err.setResponseCode(ex.getResponseStatus());  		
+			if(ex.isTestException())
+				
+				err.setResponseCode(503);
+			
+			else err.setResponseCode(ex.getResponseStatus());  
+			
+			setRecoverable(err,cause, err.getResponseCode()) ;	       
 	        
-	        err.setMessage(ex.getMessage());
+	        initContentType(err, cause);
 	        
-	        initMessageTraceByContent(err, ex, cause);
-	       
-	        //To do: eval status other codes: 422
-	        if(ex.getResponseStatus().equals(503)) {
-	        	
-	        	err.setRecoverable(true);
-	        	
-	        	err.setFriendly(errRecoverable);
-	        } else {
-	        	
-	        	err.setRecoverable(false);
-	        	
-	        	err.setFriendly(errFatal);
-	        }         	        	  	       
+	        initMessageTraceByContent(err, ex, err.getErrContentType());	       
+	        
+	        assignFriendly(err) ;
 	        
 	        if(err.getErrMethod().contains("refund"))
-	        	err.setRecoverable(false); // Currently, there is no code to configure a link back to PaymentStatusController
+	        	err.setRecoverable(false); // Currently, a link back to PaymentStatusController is not configured
 		
 			return err;
 	        
 	       
 	   }
 		
-	private void initMessageTraceByContent(CheckoutErrModel err, Exception ex, Throwable cause)	{
+	private void initContentType(CheckoutErrModel err,  Throwable cause)	{
 		
 		String contentType = "";
 		
@@ -135,14 +142,68 @@ public class PaymentExceptionController {
 	    } 
         else contentType = "Only available for HttpException failed status" ;
       
-        err.setErrContentType(contentType);
-        
-        if(contentType.toLowerCase().contains("html"))
-        	err.setMessageTrace(contentType); //For HTML, message will be the body
-        else
-        	err.setMessageTrace(EhrLogger.getMessages(ex, "<br />")); //Message trace
-        
+        err.setErrContentType(contentType);         
 		
+	}
+	
+	private void initMessageTraceByContent(CheckoutErrModel model, Exception ex, String contentType) {
+		
+		 if(contentType.toLowerCase().contains("html"))
+	        	model.setMessageTrace(contentType); //For HTML, message will be the body
+	      else
+	        	model.setMessageTrace(EhrLogger.getMessages(ex, "<br />")); //Message trace  
+	}
+	
+	private void setRecoverable(CheckoutErrModel model, Throwable cause, int httpStatus) {
+		
+		switch (httpStatus) {
+		
+		case 503 :
+			
+		    model.setRecoverable(true);
+		    break;
+		    
+		case -1: //Can be more specific such as ConnectException, NoRouteToHost
+			
+			if(cause != null && (SocketException.class.isAssignableFrom(cause.getClass())
+					|| UnknownHostException.class.isAssignableFrom(cause.getClass())))
+				model.setRecoverable(true);			
+			
+			else model.setRecoverable(false) ; 
+			break;
+			
+		default :
+			
+			model.setRecoverable(false); //IllegalArgument; status may be 200
+		
+		}
+		
+	}
+	
+	private void assignFriendly(CheckoutErrModel model) {
+		
+		String friendly = model.isRecoverable() ? this.errRecoverable : this.errFatal;
+		String label = "";
+		
+		switch (model.getErrMethod()) {
+		
+		case CREATE :
+			label = "Submit Card: " ;
+			break; 
+		case GET_DETAILS:
+			label = "Review Details: ";
+			break;
+		case CAPTURE:
+			label = "Finalize Payment: ";
+			break;
+		case REFUND:
+			label = "Refund Payment: ";
+			if(model.getResponseCode().equals(422))
+				label += "Duplicate Request. Your refund has been issued. " ;
+			model.setFriendly(label);
+		}
+		if(!model.getErrMethod().contentEquals(REFUND))
+		    model.setFriendly(label + friendly);
 	}
 	 /*
 	  * Note: If error occurs at getDetails there will be no PAYMENT_DETAILS to remove	
@@ -184,35 +245,35 @@ public class PaymentExceptionController {
 			return url;
 		}
 		
-		private CheckoutErrModel initTestRecoverable(CheckoutHttpException ex, String id) {
+	/*	private CheckoutErrModel initTestRecoverable(CheckoutHttpException ex, String id) {
 			
 	        CheckoutErrModel err = new CheckoutErrModel();	
 	        
-	        Throwable cause = EhrLogger.getRootCause(ex);
-	        
 	        err.setException(ex);
 	        
-	        err.setCause(cause.getClass().getCanonicalName());
-	        
-	        err.setRecoverable(true);
-	                	
-	        err.setFriendly(errRecoverable); 
-	        
-	        err.setResponseCode(new Integer(503));
-	        
-	        err.setErrContentType("Only applicable for non-testing HttpException");
-	        
-	        err.setMessage(ex.getMessage());
-	        
-	        err.setMessageTrace(EhrLogger.getMessages(ex, "<br />"));
+	        err.setUuid(id);	
 	        
 	        err.setErrMethod(ex.getMethod());
 	        
-	        err.setUuid(id);
+	        Throwable cause = EhrLogger.getRootCause(ex);	        
+	        
+	        err.setCause(cause.getClass().getSimpleName());	            
+	        
+	        err.setResponseCode(new Integer(503));
+	        
+	        err.setMessage(ex.getMessage());
+	        
+	        initContentType(err, cause);
+	        
+	        initMessageTraceByContent(err, ex, err.getErrContentType());           
+	        
+	        this.setRecoverable(err, cause, 503);
+	        
+	        this.assignFriendly(err);	       
 	        
 	        return err;
 			
-		}	
+		}	*/
 
 
 }

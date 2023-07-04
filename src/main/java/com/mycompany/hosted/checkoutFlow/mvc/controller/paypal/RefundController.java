@@ -82,7 +82,7 @@ public class RefundController {
 		String refundId = null;
 		
 	try {	
-		   orderPayment = processOrder(orderId); //Throws RefundPaymentException for OrderNotFound
+		   orderPayment = processOrder(orderId); //Throws NotRetrievableException for OrderNotFound
 		
 		   if(this.alreadyRefunded(orderPayment)) {
 			

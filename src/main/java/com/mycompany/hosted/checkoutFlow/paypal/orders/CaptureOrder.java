@@ -44,7 +44,7 @@ public class CaptureOrder {
 	@Autowired
 	private PayPalClient payClient;
 	
-	boolean testRecoverableException = false;
+	boolean testRecoverableException = true;
 	boolean testCaptureId = false;
 	boolean testProcessorResponse = false;
 	
@@ -60,12 +60,7 @@ public class CaptureOrder {
 	
 	public String capture(RequestContext ctx) throws CheckoutHttpException  {		
 		
-		resetProperties();
-		 
-		 if(testRecoverableException) {		 
-		 
-			  doTestException(ctx);				
-		 }		
+		 resetProperties();	
 		
 		 PaymentDetails details = (PaymentDetails)ctx.getExternalContext()
 			       .getSessionMap()
@@ -78,7 +73,12 @@ public class CaptureOrder {
 		 
 		 try {
 		 
-		evalDetails(details);	//throws to catch-block for null object or empty resource id	
+		 evalDetails(details);	//throws to catch-block for null object or empty resource id	
+		
+		 if(testRecoverableException) {		 
+			 
+			  doTestException(ctx, response, details.getPayPalResourceId());				
+		 }		
 		
 	    OrdersCaptureRequest request = new OrdersCaptureRequest(details.getPayPalResourceId());
 	    
@@ -120,12 +120,13 @@ public class CaptureOrder {
 	  }
 
 	  
-	  private void doTestException(RequestContext ctx) throws CheckoutHttpException {
+	  private void doTestException(RequestContext ctx,
+			  HttpResponse<Order> response, String resourceId) throws CheckoutHttpException {
 		  
-		  testRecoverableException = false; 
+		    testRecoverableException = false; 				  
 		    
-		    CheckoutHttpException ex = new CheckoutHttpException(new Exception("Testing Exception"),
-		    		"capture");
+		    CheckoutHttpException ex = EhrLogger.initCheckoutException(new Exception("Testing Recoverable 503 Status"),
+					"capture", response, resourceId, null); 			
 		    
 		    ex.setTestException(true);
 		    

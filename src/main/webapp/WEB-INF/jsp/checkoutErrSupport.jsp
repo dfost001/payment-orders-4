@@ -1,4 +1,4 @@
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"  %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
@@ -23,11 +23,11 @@
   
   <jsp:include page="includes/header.jsp"></jsp:include>
   
-  <div style="width:500px;margin:auto">
+  <div style="width:600px;margin:auto">
   
   <h2 style="color:#036fab">Payment Error Support</h2><br/>
   
-   <h4>${checkoutErrModel.friendly}</h4>
+   <p style="color:red;font-size:14pt;font-style:italic">${checkoutErrModel.friendly}</p>
   
    <c:if test="${checkoutErrModel.recoverable}">
 	      <h4>This error may be recoverable:
@@ -57,7 +57,7 @@
            
            <p>Error Content-Type: <span>${checkoutErrModel.errContentType}</span> 
            
-           <p>Message: <span>${checkoutErrModel.message}</span></p>  
+           <p>Message: <span><c:out value="${checkoutErrModel.message}" escapeXml="false" /></span></p>  
            
            <p>Friendly: <span>${checkoutErrModel.friendly}</span></p>                
            

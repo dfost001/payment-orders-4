@@ -44,7 +44,7 @@ public class CreateOrder2 {
 	
 	private boolean testRecoverableException = false;
 	
-	private boolean testIdNotAssigned = false;
+	private boolean testIdNotAssigned = true;
 	
 	@Autowired
 	private PayPalClient payClient;	
@@ -60,9 +60,11 @@ public class CreateOrder2 {
 		  
 		System.out.println(this.getClass().getName() + "#create: executing") ; 	
 		
+		HttpResponse<Order> response = null;
+		
 		if(testRecoverableException) {
 			
-			initTestException();
+			initTestException(response);
 		}
 
 	    OrdersCreateRequest request = new OrdersCreateRequest();
@@ -73,7 +75,7 @@ public class CreateOrder2 {
 	    request.requestBody(buildRequestBody(cart, shipping));	    
 	   
 	    
-	    HttpResponse<Order> response = null;
+	    
 
 	    try {
 	    	
@@ -82,7 +84,10 @@ public class CreateOrder2 {
 	      if(response == null || response.result() == null) {
 		    	
 		    	this.throwIllegalArg("HttpResponse or Order is null");
-		    }	
+		    }	  
+	      
+	      if(response.result().id() == null)
+	    	  this.throwIllegalArg("PayPal Order result does not contain an Id");
 	      
 	      if(this.testIdNotAssigned) {
 	    	  this.testIdNotAssigned = false;
@@ -90,27 +95,24 @@ public class CreateOrder2 {
 	    			  "Testing CreateOrder: Response does not contain an Id");
 	      }
 	      
-	      if(response.result().id() == null)
-	    	  this.throwIllegalArg("PayPal Order result does not contain an Id");
+	      debugPrint(response);
 	      
 	    } catch (IOException | IllegalArgumentException io)  {	    	    	
 	    	
 	    	/* payPalId=null, persistOrderId=null */    	
 	    	throw EhrLogger.initCheckoutException(io, "create", response, null, null); //ControllerAdvice
 	    	
-	    }	    
-	    
-	    debugPrint(response);
+	    }	     
 	   	    
 	    return response.result();
 	  }
 
-   private void initTestException() throws CheckoutHttpException {
+   private void initTestException(HttpResponse<Order> response) throws CheckoutHttpException {
 	   
 	    this.testRecoverableException = false;
 		
-		CheckoutHttpException ex = 
-				new CheckoutHttpException(new Exception("Testing Exception"), "create");
+		CheckoutHttpException ex = EhrLogger.initCheckoutException(new Exception("Testing Recoverable 503 Status"),
+				"create", response, null, null); 				
 		
 		ex.setTestException(true);
 		

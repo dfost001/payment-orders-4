@@ -21,9 +21,11 @@ public class EhrLogger {
     	checkoutEx.setPayPalId(payPalId);
     	
     	if(response != null)
-    		checkoutEx.setResponseStatus(response.statusCode());
+    		checkoutEx.setResponseStatus(response.statusCode()); //IllegalArgumentException
     	else if(HttpException.class.isAssignableFrom(ex.getClass())) {
+    		
     		Integer status = ((HttpException)ex).statusCode();
+    		
     		checkoutEx.setResponseStatus(status);
     	}   	
     	

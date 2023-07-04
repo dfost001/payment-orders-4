@@ -49,7 +49,7 @@ public class GetOrderDetails  {
 	
 	public GetOrderDetails() {
 		
-		testRecoverableException = false;
+		testRecoverableException = true;
 		testPaymentSourceNullException = false;
 	}
 	
@@ -82,7 +82,7 @@ public class GetOrderDetails  {
 		       }
 		       if(testRecoverableException) {
 				   
-			      handleTestException(ctx);
+			      handleTestException(ctx,response, orderId.getId());
 		       }
 		 
 		       OrdersGetRequest request = new OrdersGetRequest(orderId.getId());	
@@ -98,7 +98,7 @@ public class GetOrderDetails  {
 		    
 		    } catch(IOException | IllegalArgumentException | PaymentSourceNullException ex) {
 		    	
-		       String payPalId = orderId == null ? null : orderId.getId(); //Null if not in the session
+		       String payPalId = orderId == null ? null : orderId.getId(); //IllegalArg if not in the session
 		    	
 		    	CheckoutHttpException httpEx = EhrLogger.initCheckoutException(ex,
 		    			"getOrder", response, payPalId, null);
@@ -137,18 +137,20 @@ public class GetOrderDetails  {
 		 return customer;
   }
 	 
-  private void handleTestException(RequestContext ctx) throws CheckoutHttpException {
+  private void handleTestException(RequestContext ctx, 
+		  HttpResponse<Order> response, String resourceId) throws CheckoutHttpException {
 	  
-	   this.testRecoverableException = false;			    
+	   this.testRecoverableException = false;	    
+	   
 	    
-	    CheckoutHttpException ex = new CheckoutHttpException(new Exception("Testing Recoverable Exception"),
-	    		"getOrder");
+	    CheckoutHttpException ex = EhrLogger.initCheckoutException(new Exception("Testing Recoverable 503 Status"),
+				"getOrder", response, resourceId, null); 				
+		
 	    
 	    ex.setTestException(true);
 	    
-	    ctx.getExternalContext()
-  	   .getSessionMap()
-  	   .put(WebFlowConstants.CHECKOUT_HTTP_EXCEPTION, ex);
+	    ctx.getExternalContext().getSessionMap()
+  	          .put(WebFlowConstants.CHECKOUT_HTTP_EXCEPTION, ex);
 	    
 		throw ex;
   }
