@@ -61,7 +61,9 @@ public class GenerateClientToken {
     	
     	apacheConnect.setAuthProp(payPalClient.getClientId(), payPalClient.getClientSecret());
     	
-    	apacheConnect.setAccept("application/json");
+    //	apacheConnect.setAccept("application/json");
+    	
+    	apacheConnect.setAccept("application/xml");
     	         
          HashMap<String,String> map = new HashMap<>();
          

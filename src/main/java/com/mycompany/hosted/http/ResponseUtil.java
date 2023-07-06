@@ -195,17 +195,20 @@ private void decodeHttpEntity() {
     }
     
     private  String makeErrorMsg_ParseHtml() {
-        String msg = "";
+    	
+       String msg = makeErrorText();
               
         if(decodedEntity==null || decodedEntity.length() == 0){
-            return "Empty http response entity";
-        }   
-             
+            return msg;
+        }                
                 
         String type = this.findContentType();
+        
         if(type.equals("html"))
-            msg = ResponseUtil.parseHtmlBody(decodedEntity);
-        else msg = this.makeErrorText();
+            msg = msg + "<br/>" + ResponseUtil.parseHtmlBody(decodedEntity);
+        
+        else msg = msg + "<br/>" + decodedEntity;
+        
         return msg;
     }
     
@@ -249,14 +252,24 @@ private void decodeHttpEntity() {
      * To do: get Retry-After if present on 503
      */
     private String makeReasonPhrase(){
+    	
+
+        if(respCode == -1)
+           return "Problem connecting to remote service. ";
+    	
         String phrase = headers.get(null).get(0);
+        
+        String msg = "";
+        
         if(respCode >= 400 && respCode < 500)
-            phrase  = "Internal application error " + phrase;
+            msg  = "Internal application error " ;
         else if(respCode == 503) {
-            phrase = "Temporary service error " + phrase;
+            msg = "Temporary remote service error " ;
         }
         else if(respCode >= 500 && respCode < 600)
-            phrase = "Service application error may be temporary " + phrase;
+            msg = "Remote error may be temporary " ;
+        
+        phrase = msg + respCode + ": " + phrase;
        
         return phrase;
     }
