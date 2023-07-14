@@ -39,19 +39,13 @@ import org.springframework.webflow.execution.RequestContext;
 @Component
 public class GetOrderDetails  {
 	
-	 private boolean testRecoverableException;
-	 private boolean testPaymentSourceNullException;
+	 private boolean testRecoverableException = true;
+	 private boolean testPaymentSourceNullException = false;
 	 
 	 private String debugIntegrationType = "AdvancedCheckout" ;
 	
 	@Autowired
-	private PayPalClient payClient;
-	
-	public GetOrderDetails() {
-		
-		testRecoverableException = true;
-		testPaymentSourceNullException = false;
-	}
+	private PayPalClient payClient;	
 	
 	 public String getOrder(RequestContext ctx, MyFlowAttributes flowAttrs) 
 			 throws CheckoutHttpException {		 

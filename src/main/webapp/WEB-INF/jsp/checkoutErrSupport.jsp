@@ -47,6 +47,8 @@
                
           <blockquote style="font-size:10pt; display:none" id="errContent">
           
+           <p>Message: <span><c:out value="${checkoutErrModel.message}" escapeXml="false" /></span></p>  
+           
            <p>Exception UUID: <span>${checkoutErrModel.uuid}</span></p>
            
            <p>PayPal Resource Id: <span>${checkoutErrModel.exception.payPalId}</span></p>
@@ -55,9 +57,7 @@
           
            <p>Cause: <span>${checkoutErrModel.cause}</span></p>             
            
-           <p>Error Content-Type: <span>${checkoutErrModel.errContentType}</span> 
-           
-           <p>Message: <span><c:out value="${checkoutErrModel.message}" escapeXml="false" /></span></p>  
+           <p>Error Content-Type: <span>${checkoutErrModel.errContentType}</span>            
            
            <p>Friendly: <span>${checkoutErrModel.friendly}</span></p>                
            

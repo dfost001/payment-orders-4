@@ -2,7 +2,8 @@ package com.mycompany.hosted.checkoutFlow.mvc.controller.paypal;
 
 
 
-import java.net.SocketException;
+import java.net.ConnectException;
+
 import java.net.UnknownHostException;
 
 import javax.servlet.http.HttpServletRequest;
@@ -165,7 +166,7 @@ public class PaymentExceptionController {
 		    
 		case -1: //Can be more specific such as ConnectException, NoRouteToHost
 			
-			if(cause != null && (SocketException.class.isAssignableFrom(cause.getClass())
+			if(cause != null && (ConnectException.class.isAssignableFrom(cause.getClass())
 					|| UnknownHostException.class.isAssignableFrom(cause.getClass())))
 				model.setRecoverable(true);			
 			

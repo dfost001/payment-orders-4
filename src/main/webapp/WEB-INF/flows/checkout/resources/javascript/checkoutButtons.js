@@ -105,11 +105,7 @@ $(document).ready(function(){
 	
 	var doFormValidity = function(hostedFieldsInstance) {
 		
-		 var state = hostedFieldsInstance.getState();
-		 
-		 console.log("doFormValidity: state is null=" + state == null);
-		 
-		 console.log("doFormValidity: state is undefined=" + state == undefined);
+		 var state = hostedFieldsInstance.getState();		 
 		 
 		 $("#alertList").empty();
 		 

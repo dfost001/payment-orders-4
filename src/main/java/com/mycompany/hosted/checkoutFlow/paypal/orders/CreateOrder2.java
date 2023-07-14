@@ -58,7 +58,7 @@ public class CreateOrder2 {
 	   */
 	  public Order create(Cart cart, PostalAddress shipping) throws CheckoutHttpException {	
 		  
-		System.out.println(this.getClass().getName() + "#create: executing") ; 	
+		EhrLogger.consolePrint(this.getClass(), "create", "executing") ; 	
 		
 		HttpResponse<Order> response = null;
 		
@@ -72,10 +72,7 @@ public class CreateOrder2 {
 	    request.prefer("return=representation");   
 	    
 
-	    request.requestBody(buildRequestBody(cart, shipping));	    
-	   
-	    
-	    
+	    request.requestBody(buildRequestBody(cart, shipping));		    
 
 	    try {
 	    	

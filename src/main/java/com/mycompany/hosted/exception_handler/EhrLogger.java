@@ -175,6 +175,8 @@ public class EhrLogger {
 	    	
 	    	throw new IllegalArgumentException(err, cause);
 	    }
+       
+       
 	    
 	}
 
