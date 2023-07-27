@@ -61,7 +61,7 @@ public class GetOrderDetails  {
 		    	
 		       orderId = evalOrderId(ctx); //throws IllegalArgument for null
 		       
-		       this.compareScriptToServerId(ctx, orderId); //throws if not equal
+		       this.compareScriptToServerId(ctx, orderId); //throws if not equal, can refine message
 		       
 		       Customer customer = handleNullCustomer(ctx);
 		    
@@ -202,7 +202,7 @@ public class GetOrderDetails  {
 		 if(debugIntegrationType.equals("AdvancedCheckout"))		 
 		     initPaymentSourceOrThrow(order, details);	//throws PaymentSourceNull 		 
 		 
-		 details.setCreatedStatus(GetDetailsStatus.valueOf(order.status()));		
+		 details.setCreatedStatus(GetDetailsStatus.valueOf(order.status())); //Enum declared on PaymentDetails		
 		 
 		 details.setJson(debugPrintJson(response));
 		 

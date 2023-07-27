@@ -29,7 +29,7 @@
   
        <h4 style="color:rgb(245,66,66)">We are unable to complete your payment.</h4> 
        
-       Customer: ${customer.firstName} ${customer.lastName}
+       Customer: ${customer.firstName} ${customer.lastName} <br/>
 	   
 	   Customer Id: <span>${customer.id}</span><br/><br/>  
   
@@ -42,7 +42,7 @@
            <c:forEach var="msg" items="${MESSAGE_LIST_KEY}">
             <li style="font-size:11pt;font-style:italic"> ${msg} </li>
            </c:forEach>
-           <li><a href="<c:url value="/checkout-flow" />" class="alert-link">Return to Checkout</a></li>
+           <li><a href="<c:url value="/spring/checkout-flow" />" class="alert-link">Return to Checkout</a></li>
          </ul>
        </div>
 	   

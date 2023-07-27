@@ -51,11 +51,13 @@
            
            <p>Exception UUID: <span>${checkoutErrModel.uuid}</span></p>
            
+           <p>Cause: <span>${checkoutErrModel.cause}</span></p>  
+           
            <p>PayPal Resource Id: <span>${checkoutErrModel.exception.payPalId}</span></p>
 		 
 		   <p>Response Status: <span>${checkoutErrModel.responseCode}</span></p>
           
-           <p>Cause: <span>${checkoutErrModel.cause}</span></p>             
+           <p>Recoverable: <span>${checkoutErrModel.recoverable}</span></p>           
            
            <p>Error Content-Type: <span>${checkoutErrModel.errContentType}</span>            
            

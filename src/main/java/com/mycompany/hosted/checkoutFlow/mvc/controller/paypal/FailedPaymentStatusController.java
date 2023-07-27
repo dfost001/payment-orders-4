@@ -31,6 +31,8 @@ public class FailedPaymentStatusController {
 	
 	private final String MESSAGE_LIST_KEY = "MESSAGE_LIST_KEY";
 	
+	private final String ADDR_CODE_VALUE_KEY = "addrCodeValue" ;
+	
 	private final String GET_DETAILS_MSG = "Unexpected VOIDED status returned for requested payment details. ";
 	
 	private final String CVV_INVALID_MSG = "CVV Security Code is invalid";
@@ -40,8 +42,12 @@ public class FailedPaymentStatusController {
 	private final String TRANSACT_NOT_PROCCESSED = "The transaction cannot be completed. Please contact " +
 	    "either the card-issuer or support: ";
 	
+	private final String CARD_DECLINED_NO_REASON = "Your card has been declined. No reason is assigned. Contact the issuer. " ;
+	
 	private final String ADDRESS_ERR_MSG = "There is a problem with the Billing address. " +
 	  "Either the address does not match the card or a postal field (city, state, zip) is incorrect";
+	
+	private boolean errorOnGetDetails;
 	
 	@GetMapping(value="/failedStatus/handle")
 	public String handleFailedStatus(HttpSession session, ModelMap model)
@@ -51,17 +57,20 @@ public class FailedPaymentStatusController {
 				(PaymentDetails)session.getAttribute(WebFlowConstants.PAYMENT_DETAILS);
 		
 		if(details == null)
-			throw new MvcNavigationException();	
+			throw new MvcNavigationException();		
 	
+		boolean cardValid = false;
 		
-		if(!isGetDetailsError(details)) {
+		if(!(errorOnGetDetails = isGetDetailsError(details))) {
 						
-		      evalProcessorResponse(details, model);
+		     cardValid = evalProcessorResponse(details, model);
 		
 		}
 		
 		if(details.getStatusReason() != null)
 			messages.add("Failed Reason: " + details.getStatusReason().name());
+		
+		this.evalCaptureStatusOrThrow(details, cardValid);
 		
 		model.addAttribute(WebFlowConstants.PAYMENT_DETAILS, details);
 		
@@ -75,7 +84,7 @@ public class FailedPaymentStatusController {
 	private boolean isGetDetailsError(PaymentDetails details) {		
 		
 		
-		if(details.getCaptureTime() != null)
+		if(details.getCaptureTime() != null) 
 			return false;
 		
 		if(details.getCreatedStatus() == null)
@@ -100,7 +109,7 @@ public class FailedPaymentStatusController {
 		return true;
 	}
 	
-	private void evalProcessorResponse(PaymentDetails details, ModelMap map) {
+	private boolean evalProcessorResponse(PaymentDetails details, ModelMap map) {
 		
 		boolean valid = true;
 		
@@ -122,16 +131,11 @@ public class FailedPaymentStatusController {
 		if(resp.avsCode() != null) {
 		    messages.add(this.ADDRESS_ERR_MSG);
 		    valid =false;
+		} else {
+			map.addAttribute(ADDR_CODE_VALUE_KEY, "No error code");
 		}
 		
-		//Check on CaptureOrder code
-		if(valid && isValidCaptureStatus(details) && details.getStatusReason() == null)
-			EhrLogger.throwIllegalArg(this.getClass(), "evalProcessorResponse", 
-					"No failure has been evaluated: ProcessorResponse and CaptureStatus are OK");
-		
-		String addrCodeValue = resp.avsCode() == null ? "None" : resp.avsCode();
-		
-		map.addAttribute("addrCodeValue", addrCodeValue);
+		return valid;		
 	}
 	
 	private boolean isCvvError(String cvvCode) {
@@ -163,7 +167,8 @@ public class FailedPaymentStatusController {
 		String msg = "";
 		
 		switch (code) {
-		
+		case "0000" :
+			break;
 		case "9500":
 			msg = this.CARD_INVALID_MSG + "Fraudulent Card";
 			break;
@@ -189,7 +194,22 @@ public class FailedPaymentStatusController {
 			msg = this.TRANSACT_NOT_PROCCESSED;
 			break;		
 		}
-		messages.add(msg);
+		if(!msg.isEmpty())
+		   messages.add(msg);
+	}
+	
+	private void evalCaptureStatusOrThrow(PaymentDetails details, boolean cardValid) {
+		
+		if(errorOnGetDetails)
+			return;
+		
+		//Check on CaptureOrder code
+		if(cardValid && details.getStatusReason() == null) {
+			if(isValidCaptureStatus(details))
+					EhrLogger.throwIllegalArg(this.getClass(), "evalCaptureStatusOrThrow", 
+							"No failure has been evaluated for ProcessorResponse, CaptureStatus");	
+			else messages.add(CARD_DECLINED_NO_REASON);
+		}
 	}
 	
  public static boolean isValidCaptureStatus(PaymentDetails details) {
