@@ -16,33 +16,47 @@
 	<script src="${pageContext.request.contextPath}/resources/javascript/jquery-1.11.1.js"></script>
 	<script src="${pageContext.request.contextPath}/resources/javascript/bootstrap.min.js"></script>
 	
+	<style>
+	  li {padding:3px}
+	</style>
+	
 </head>
   
 <body>
-  <div class="container">
+  <div class="container" style="padding-bottom:50px">
   
   <jsp:include page="includes/header.jsp"></jsp:include>
   
-  <div style="width:600px;margin:auto">
+  <div style="width:750px;margin:auto">
   
   <h2 style="color:#036fab">Payment Error Support</h2><br/>
   
-   <p style="color:red;font-size:14pt;font-style:italic">${checkoutErrModel.friendly}</p>
+  <div class="alert alert-danger">
+    <ul>
+      <li style="font-weight:bold">${checkoutErrModel.friendly}</li>
+      <c:if test="${checkoutErrModel.recoverable}">
+        <li>This error may be recoverable:  &nbsp;&nbsp;
+             <a href="<c:url value='/spring/${checkoutErrModel.retUrl}' />" class="alert-link">Retry Checkout</a></li>
+      </c:if>
+      <li>You may contact support to complete your order: <span>123-1234</span></li>
+      <li><a href="<c:url value='/spring/catalogue/view'/>" >
+	          Return Home</a></li>
+    </ul>
+  </div>
   
-   <c:if test="${checkoutErrModel.recoverable}">
-	      <h4>This error may be recoverable:
-	            <a href="<c:url value='/spring/${checkoutErrModel.retUrl}'/>">Retry Checkout</a></h4><br/>
-	   </c:if>
-  
-       <h4>You may contact support to complete your order: <span>123-1234</span></h4>
-	   
-	   <h4>Customer <span>${customer.id}</span>: ${customer.firstName} ${customer.lastName}</h4>     
-	    
-	    
-	    <h5><a href="<c:url value='/spring/catalogue/view'/>" style="font-weight:bold">
-	          Return Home</a></h5>
-	    
-	      <a href="#" id="support" style="font-weight:bold">
+     <div style="width:700px">
+      <div style="width:250px;float:left">
+      
+         <jsp:include page="../flows/checkout/includes/shippingAddress.jsp" />
+         <jsp:include page="../flows/checkout/includes/billingAddress.jsp" />
+       
+      </div><!-- end address container -->
+      
+      <div style="width:420px;float:left;padding:30px">
+      
+         <jsp:include page="../flows/checkout/includes/cartItems.jsp" /> <br/>
+         
+           <a href="#" id="support" style="font-weight:bold;">
                Support <span class="glyphicon glyphicon-collapse-down"></span></a>
                
           <blockquote style="font-size:10pt; display:none" id="errContent">
@@ -72,6 +86,9 @@
            <p>Messages: ${checkoutErrModel.messageTrace}</p>
            
         </blockquote>     
+         
+      </div><!-- end cart info -->
+     </div><!-- end info container -->   
         
           <script>
            $("#support").click(function(ev){

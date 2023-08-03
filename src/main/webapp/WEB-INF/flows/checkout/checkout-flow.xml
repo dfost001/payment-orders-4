@@ -156,6 +156,7 @@
        </on-render>      
        
        <transition on="editShipAddress" to="selectShipAddress" />
+       <transition on="cancel" to="selectShipAddress" />
        
        <transition on="editBillingAddress" to="updateShipAddressSub">
            <set name="flashScope.postalAddress" value="externalContext.sessionMap.customer" />

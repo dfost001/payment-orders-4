@@ -80,7 +80,9 @@ public class FailedPaymentStatusController {
 		
 		return "jsp/paymentFailedStatus";
 	}
-	
+	/*
+	 * Always returns true unless error occurred at Capture or a Runtime is thrown
+	 */
 	private boolean isGetDetailsError(PaymentDetails details) {		
 		
 		

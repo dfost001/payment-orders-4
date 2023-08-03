@@ -189,7 +189,8 @@ public class GetOrderDetails  {
 			if(!err.isEmpty())
 				EhrLogger.throwIllegalArg(this.getClass(), "getOrder", err);
 	}
-	 /*
+	
+	/*
 	  * Note: Details created with the OrderId
 	  */
 	 private void initOrderDetails(PaymentDetails details,

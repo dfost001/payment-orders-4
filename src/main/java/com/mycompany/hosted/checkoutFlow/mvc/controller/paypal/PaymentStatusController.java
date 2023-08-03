@@ -159,15 +159,11 @@ public class PaymentStatusController {
 	}	
 	
 	@GetMapping(value="/payment/receipt")
-	public String showReceipt(ModelMap model) {
-		
-		
+	public String printableReceipt(ModelMap model) {		
 		
 		return "jsp/receipt";
 		
-	}
-	
-	
+	}	
 	
 	private void debugPrintOrThrowOrder(OrderPayment order) {
 		

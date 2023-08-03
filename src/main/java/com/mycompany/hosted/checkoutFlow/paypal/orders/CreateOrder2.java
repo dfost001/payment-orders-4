@@ -44,7 +44,7 @@ public class CreateOrder2 {
 	
 	private boolean testRecoverableException = false;
 	
-	private boolean testIdNotAssigned = true;
+	private boolean testIdNotAssigned = false;
 	
 	@Autowired
 	private PayPalClient payClient;	
