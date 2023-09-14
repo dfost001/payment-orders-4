@@ -9,7 +9,7 @@ import java.net.UnknownHostException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +19,7 @@ import com.mycompany.hosted.checkoutFlow.WebFlowConstants;
 import com.mycompany.hosted.checkoutFlow.exceptions.CheckoutErrModel;
 import com.mycompany.hosted.checkoutFlow.exceptions.CheckoutHttpException;
 import com.mycompany.hosted.checkoutFlow.servlet_context.ServletContextAttrs;
+import com.mycompany.hosted.checkoutFlow.servlet_context.OrderAttributes;
 import com.mycompany.hosted.exception_handler.EhrLogger;
 import com.mycompany.hosted.exception_handler.MvcNavigationException;
 import com.paypal.http.Headers;
@@ -32,6 +33,9 @@ import com.paypal.http.exceptions.HttpException;
 
 @Controller
 public class PaymentExceptionController {	  
+	
+	  @Autowired
+	  private ServletContextAttrs servletContextAttrs;
 	
 	  public static final String ERR_GET_DETAIL = "ERR_GET_DETAIL";	
 	  
@@ -70,7 +74,10 @@ public class PaymentExceptionController {
 			
 			removeDetailsOnNotRecoverable(request.getSession(),errModel);	
 			
-			model.addAttribute("checkoutErrModel", errModel);					
+			model.addAttribute("checkoutErrModel", errModel);
+			
+			if(errModel.getErrMethod().contentEquals(REFUND))
+				this.prepareModelOrderAttributes(model, ex.getPersistOrderId());
 			
 			return "jsp/checkoutErrSupport";
 			
@@ -246,35 +253,16 @@ public class PaymentExceptionController {
 			return url;
 		}
 		
-	/*	private CheckoutErrModel initTestRecoverable(CheckoutHttpException ex, String id) {
-			
-	        CheckoutErrModel err = new CheckoutErrModel();	
-	        
-	        err.setException(ex);
-	        
-	        err.setUuid(id);	
-	        
-	        err.setErrMethod(ex.getMethod());
-	        
-	        Throwable cause = EhrLogger.getRootCause(ex);	        
-	        
-	        err.setCause(cause.getClass().getSimpleName());	            
-	        
-	        err.setResponseCode(new Integer(503));
-	        
-	        err.setMessage(ex.getMessage());
-	        
-	        initContentType(err, cause);
-	        
-	        initMessageTraceByContent(err, ex, err.getErrContentType());           
-	        
-	        this.setRecoverable(err, cause, 503);
-	        
-	        this.assignFriendly(err);	       
-	        
-	        return err;
-			
-		}	*/
+	    private void prepareModelOrderAttributes(ModelMap model, Integer orderId) {
+	    	
+	    	OrderAttributes orderAttrs = servletContextAttrs.getOrderAttributes(orderId);
+	    	
+	    	model.addAttribute("selectedAddress", orderAttrs.getShipTo());
+	    	
+	    	model.addAttribute("customer", orderAttrs.getBillTo());
+	    	
+	    	model.addAttribute("cart", orderAttrs.getCartAttrs());
+	    }
 
 
 }

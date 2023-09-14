@@ -11,19 +11,19 @@
                 <tr>
                     <td>Subtotal:</td>
                     <td class="rightAlign">
-                      &dollar; ${cart.formattedSubtotal} </td>
+                      &dollar; ${sessionScope.cart.formattedSubtotal} </td>
                 </tr>
                 <tr>
                     <td>Shipping Fee:</td>
-                    <td class="rightAlign">&dollar; ${cart.formattedShipping}</td>
+                    <td class="rightAlign">&dollar; ${sessionScope.cart.formattedShipping}</td>
                 </tr>
                 <tr>
                     <td>Tax:</td>
-                    <td class="rightAlign">&dollar; ${cart.formattedTax}</td>
+                    <td class="rightAlign">&dollar; ${sessionScope.cart.formattedTax}</td>
                 </tr>
                 <tr>
                     <td>Grand Total:</td>
                     <td class="rightAlign">
-                        &dollar; ${cart.formattedGrand}</td>
+                        &dollar; ${sessionScope.cart.formattedGrand}</td>
                 </tr>
             </table>

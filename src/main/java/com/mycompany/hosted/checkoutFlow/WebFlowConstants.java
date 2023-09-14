@@ -29,8 +29,8 @@ public class WebFlowConstants {
 	
 	public static final String PAYPAL_SCRIPT_ID = "scriptId";
 	
-	//public static final String CHECKOUT_ERR_MODEL = "checkoutErrModel";
 	
+	//Exception stored in ServletContext using this key
 	public static final String CHECKOUT_HTTP_EXCEPTION = "checkoutHttpException";
 	
 	//Written by MyFlowHandler, Read by PaymentExceptionController
@@ -41,6 +41,9 @@ public class WebFlowConstants {
 	public static final String ERR_GET_DETAIL = "ERR_GET_DETAIL";
 	
 	public static final String ERR_ON_CAPTURE = "ERR_ON_CAPTURE";
+	
+	//Written into the ServletContext. Read by PaymentExceptionController.
+	public static final String ORDER_ATTRIBUTES = "orderAttributes";
 	
  
     /*

@@ -42,7 +42,7 @@
            <c:forEach var="msg" items="${MESSAGE_LIST_KEY}">
             <li style="font-size:11pt;font-style:italic"> ${msg} </li>
            </c:forEach>
-           <li><a href="<c:url value="/spring/checkout-flow" />" class="alert-link">Return to Checkout</a></li>
+           <li><a href="<c:url value="/spring/checkout-flow" />" >Return to Checkout</a></li>
          </ul>
        </div>
 	   
@@ -52,8 +52,8 @@
             <p> Card Processor Codes: </p>  
              <blockquote style="font-size: 10pt">
               
-              CVV: <span> ${details.processorResponse.cvvCode}</span><br/>
-              Card Number: <span>${details.processorResponse.responseCode}</span><br/>
+              CVV Result Code: <span> ${details.processorResponse.cvvCode}</span><br/>
+              Card Error Code: <span>${details.processorResponse.responseCode}</span><br/>
               Address Error: <span>${addrCodeValue}</span><br/>
              </blockquote>
         </c:if>	 
@@ -80,7 +80,7 @@
            
        <c:if test="${not empty details.statusReason}">
              <p>Failed Capture Reason: <span>${details.statusReason}</span></p>   
-       </c:if>    
+      </c:if>  
             
 	  </blockquote>
 	    

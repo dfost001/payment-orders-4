@@ -10,6 +10,7 @@ import javax.servlet.ServletContext;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.ServletContextAware;
+import org.springframework.webflow.execution.RequestContext;
 
 import com.mycompany.hosted.checkoutFlow.WebFlowConstants;
 import com.mycompany.hosted.checkoutFlow.exceptions.CheckoutHttpException;
@@ -69,6 +70,39 @@ public class ServletContextAttrs implements ServletContextAware {
 		
 		return ex;			
 		
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void setOrderAttributes(RequestContext request, Integer orderId) {
+		
+		OrderAttributes orderAttrs = OrderAttributesUtil.initOrderAttrs(request);
+		
+		Map<String, OrderAttributes> map = (Map<String, OrderAttributes>)
+				 sc.getAttribute(WebFlowConstants.ORDER_ATTRIBUTES);
+		 
+		 if(map == null) {
+			 map = new LinkedHashMap<>();
+			 sc.setAttribute(WebFlowConstants.ORDER_ATTRIBUTES, map);
+		 }		 
+		 
+		 map.put(orderId.toString(), orderAttrs) ;
+				
+		
+	}
+	
+	@SuppressWarnings("unchecked")
+	public OrderAttributes getOrderAttributes(Integer orderId) {
+		
+		Map<String,OrderAttributes> map = (Map<String, OrderAttributes>)
+				sc.getAttribute(WebFlowConstants.ORDER_ATTRIBUTES);
+		
+		OrderAttributes orderAttrs = map.get(orderId.toString());
+		
+		if(orderAttrs == null)
+			EhrLogger.throwIllegalArg(ServletContextAttrs.class, "getOrderAttributes", 
+					"OrderAttributes keyed by orderId " + orderId + " is not the map.");	
+		
+		return orderAttrs;
 	}
 
 }

@@ -211,7 +211,8 @@
     
          <evaluate expression="jpaPersistOrder.persist(flowRequestContext)" 
              result="flowScope.order"/>         
-         <transition on="success"    to="paymentCompleted">               
+         <transition on="success"    to="paymentCompleted">  
+              <evaluate expression="servletContextAttrs.setOrderAttributes(flowRequestContext, order.getOrderId())"  />            
               <evaluate expression="paymentStateAttrs.removeAttrsOnOrderPersisted(flowRequestContext)" />
               <evaluate expression="paymentStateAttrs.setOrderIntoSession(flowRequestContext, order)"/>
          </transition>

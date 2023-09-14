@@ -70,7 +70,7 @@ public class ErrorDetailBean {
 	
    public ErrorDetail findDetail(Integer orderId) {	  	   
 	  
-	   EhrLogger.consolePrint(this.getClass(), "findDetail", "param=" + orderId);
+	  /* EhrLogger.consolePrint(this.getClass(), "findDetail", "param=" + orderId);*/
 		
 		for(int i=0; i< this.errorDetailList.size(); i++) {
 			

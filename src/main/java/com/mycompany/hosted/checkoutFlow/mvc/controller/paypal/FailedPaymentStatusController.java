@@ -4,9 +4,11 @@ import java.util.ArrayList;
 
 import javax.servlet.http.HttpSession;
 
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.context.WebApplicationContext;
 
 import com.mycompany.hosted.checkoutFlow.WebFlowConstants;
 import com.mycompany.hosted.checkoutFlow.paypal.orders.PaymentDetails;
@@ -25,6 +27,7 @@ import com.paypal.orders.ProcessorResponse;
  */
 
 @Controller
+@Scope(WebApplicationContext.SCOPE_REQUEST)
 public class FailedPaymentStatusController {
 	
 	private ArrayList<String> messages = new ArrayList<>();
@@ -134,7 +137,7 @@ public class FailedPaymentStatusController {
 		    messages.add(this.ADDRESS_ERR_MSG);
 		    valid =false;
 		} else {
-			map.addAttribute(ADDR_CODE_VALUE_KEY, "No error code");
+			map.addAttribute(ADDR_CODE_VALUE_KEY, "No error returned.");
 		}
 		
 		return valid;		
@@ -240,5 +243,14 @@ public class FailedPaymentStatusController {
 		return valid;
 		
 	}
+ 
+  /*  private void debugPrintFailedReason(PaymentDetails details) {
+    	if(details.getStatusReason() != null)
+    		System.out.println(this.getClass().getName()
+    				+ ": Details#statusReason is null");
+    	else System.out.println(this.getClass().getName()
+				+ ": Details#statusReason is NOT null: "
+				+ details.getStatusReason().name());
+    } */
 
-}
+}//end class

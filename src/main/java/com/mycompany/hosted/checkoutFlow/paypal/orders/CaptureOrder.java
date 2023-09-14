@@ -44,7 +44,7 @@ public class CaptureOrder {
 	@Autowired
 	private PayPalClient payClient;
 	
-	boolean testRecoverableException = true;
+	boolean testRecoverableException = false;
 	boolean testCaptureId = false;
 	boolean testProcessorResponse = false;
 	

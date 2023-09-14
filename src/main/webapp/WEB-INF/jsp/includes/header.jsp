@@ -66,7 +66,7 @@
 	      
 	       <ul class="nav nav-pills" role="tablist" style="float:right; margin-right:30px">	  
 	       
-	           <c:if test="${cart.count gt 0}">
+	           <c:if test="${sessionScope.cart.count gt 0}">
 	              <c:choose>
 	              <c:when test="${fn:contains(pageContext.request.requestURI, 'viewCart') }">
 	                 <li>
@@ -100,7 +100,7 @@
 	           
 	           </li>
 	           <li>   
-	                <label style="font-size:9pt;">${cart.formattedCount} </label>   
+	                <label style="font-size:9pt;">${sessionScope.cart.formattedCount} </label>   
 	           </li>          
 	        </ul><!-- end nav --> 	     
 	              
