@@ -2,9 +2,11 @@ package com.mycompany.hosted.checkoutFlow.mvc.controller.paypal;
 
 
 
+import java.io.IOException;
 import java.net.ConnectException;
 
 import java.net.UnknownHostException;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -18,12 +20,17 @@ import org.springframework.web.bind.annotation.RequestParam;
 import com.mycompany.hosted.checkoutFlow.WebFlowConstants;
 import com.mycompany.hosted.checkoutFlow.exceptions.CheckoutErrModel;
 import com.mycompany.hosted.checkoutFlow.exceptions.CheckoutHttpException;
+import com.mycompany.hosted.checkoutFlow.paypal.orders.PayPalErrorDetail;
+import com.mycompany.hosted.checkoutFlow.paypal.orders.PayPalErrorResponse;
 import com.mycompany.hosted.checkoutFlow.servlet_context.ServletContextAttrs;
 import com.mycompany.hosted.checkoutFlow.servlet_context.OrderAttributes;
 import com.mycompany.hosted.exception_handler.EhrLogger;
 import com.mycompany.hosted.exception_handler.MvcNavigationException;
 import com.paypal.http.Headers;
 import com.paypal.http.exceptions.HttpException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 
 /*
  * Fixed: If CheckoutException is not in session, throw UserNavigation
@@ -43,12 +50,15 @@ public class PaymentExceptionController {
 	  
 	  /*
 	   * Strings used by backing-beans to create the HttpCheckoutException
+	   * Used to assignFriendly
 	   * To do: Change to a public enum and revise backing-beans
 	   */
 	  private final String CREATE = "create";
 	  private final String GET_DETAILS = "getOrder";
 	  private final String CAPTURE = "capture" ;
-	  private final String REFUND = "refund" ;
+	  private final String REFUND = "refund" ; 
+	  
+	  private final String FULLY_REFUNDED = "CAPTURE_FULLY_REFUNDED";
 		
 		private final String errRecoverable = "The payment service is temporarily unavailable. ";
 				
@@ -122,16 +132,16 @@ public class PaymentExceptionController {
 			
 			else err.setResponseCode(ex.getResponseStatus());  
 			
-			setRecoverable(err,cause, err.getResponseCode()) ;	       
+			setRecoverable(err,cause, err.getResponseCode()) ;
+			
+			if(err.getErrMethod().contains("refund"))
+		        	err.setRecoverable(false); // Currently, a link back to PaymentStatusController is not configured
 	        
 	        initContentType(err, cause);
 	        
-	        initMessageTraceByContent(err, ex, err.getErrContentType());	       
+	        initMessageTraceByContent(err, ex, err.getErrContentType()); //Contains content-type or the trace	       
 	        
-	        assignFriendly(err) ;
-	        
-	        if(err.getErrMethod().contains("refund"))
-	        	err.setRecoverable(false); // Currently, a link back to PaymentStatusController is not configured
+	        assignFriendly(err) ;	      
 		
 			return err;
 	        
@@ -205,13 +215,62 @@ public class PaymentExceptionController {
 			label = "Finalize Payment: ";
 			break;
 		case REFUND:
+			
+			System.out.println("PaymentExceptionController#assignFriendly case : responseCode="
+			    + model.getResponseCode());
+			
+			boolean refunded = false;
+			
 			label = "Refund Payment: ";
-			if(model.getResponseCode().equals(422))
-				label += "Duplicate Request. Your refund has been issued. " ;
-			model.setFriendly(label);
+			
+			if(model.getResponseCode().equals(422)) {
+				
+				refunded = deserializeError(model.getException().getCause());
+				
+				if(refunded)
+				  friendly = "Your refund has already been issued. This is a duplicate request. ";
+			} else System.out.println("deserializeError skipped");
 		}
-		if(!model.getErrMethod().contentEquals(REFUND))
-		    model.setFriendly(label + friendly);
+		
+		model.setFriendly(label + friendly);
+	}
+	
+	private boolean deserializeError(Throwable ex) {
+		
+		if(!HttpException.class.isAssignableFrom(ex.getClass()))
+			return false;
+		
+		ObjectMapper mapper = new ObjectMapper();
+		
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		
+		mapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+		
+		PayPalErrorResponse err = null;
+		
+		try {
+			 err = mapper.readValue(ex.getMessage(), 
+					PayPalErrorResponse.class);
+		} catch (IOException e) {
+			
+			System.out.println("ExceptionController#deserializeError: IOException: " + e.getMessage());
+			
+			return false;
+		}
+		List<PayPalErrorDetail> details = err.getDetails();
+		
+		if(details == null || details.isEmpty()) {
+			System.out.println("PaymentExceptionController#deserializeError: details are null: returning false");
+			return false;	
+		} else {
+			System.out.println("PaymentExceptionController#deserializeError: details are NOT null");
+			System.out.println("Issue: " + details.get(0).getIssue() );
+		}	
+		
+		if(details.get(0).getIssue().contentEquals(FULLY_REFUNDED))
+		     return true;
+		
+		return false;
 	}
 	 /*
 	  * Note: If error occurs at getDetails there will be no PAYMENT_DETAILS to remove	

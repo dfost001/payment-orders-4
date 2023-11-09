@@ -78,8 +78,8 @@ public class GenerateClientToken {
         
          // this.evalTokenResponse(tmpTokenResponse, jsonBytes); //throws PayPalExecuteException
       
-       /*  System.out.println("GenerateClientToken: accessToken obtained: " + 
-             tmpTokenResponse.getAccessToken());*/
+        System.out.println("GenerateClientToken#doAuthorize: accessToken obtained: " + 
+             tmpTokenResponse.getAccessToken());
          
          return tmpTokenResponse.getAccessToken();    	
     	
@@ -96,7 +96,7 @@ public class GenerateClientToken {
     	
     	apacheConnect.setAccept("application/json");
     	
-    	byte[] jsonBytes = apacheConnect.doConnectPost(path, null, "");
+    	byte[] jsonBytes = apacheConnect.doConnectPost(path, null, "application/json");
     	
     	ClientTokenResult result =
     			(ClientTokenResult)this.responseUtilEvaluate(jsonBytes, ClientTokenResult.class, 

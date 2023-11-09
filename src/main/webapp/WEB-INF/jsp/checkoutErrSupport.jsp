@@ -39,8 +39,7 @@
              <a href="<c:url value='/spring/${checkoutErrModel.retUrl}' />" class="alert-link">Retry Checkout</a></li>
       </c:if>
       <li>You may contact support to complete your order: <span>123-1234</span></li>
-      <li><a href="<c:url value='/spring/catalogue/view'/>" >
-	          Return Home</a></li>
+      
     </ul>
   </div>
   

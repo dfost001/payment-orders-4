@@ -73,7 +73,7 @@ public class CaptureOrder {
 		 
 		 try {
 		 
-		 evalDetails(details);	//throws to catch-block for null object or empty resource id	
+		 evalDetails(details);	//throws to catch-block for null or empty resource id	
 		
 		 if(testRecoverableException) {		 
 			 
@@ -248,17 +248,18 @@ public class CaptureOrder {
 		    	  System.out.println("CaptureOrder#initCaptureId: captureStatusDetails=" + reason);
 		    	  
 		    	  isFailedStatusDetails = true;
-		      }
+		      }	  
+		      
 		    	  
+		      if(isFailedProcessorCode(capture.processorResponse())) {
+		    	  isFailedProcessorResponse = true; //Probably not necessary since capture status will be DECLINED
+		      }
+		      
 		      if(capture.status().equals(CaptureStatusEnum.DECLINED.name())
 		    		  || capture.status().equals(CaptureStatusEnum.FAILED.name())) {       	  
 		    	  	    	  
 		    	 
 		    	  isFailedCaptureStatus = true;
-		      }
-		    	  
-		      if(isFailedProcessorCode(capture.processorResponse())) {
-		    	  isFailedProcessorResponse = true; //Probably not necessary since capture status will be DECLINED
 		      }
 		      
 		      //If status is FAILED/DECLINED and there is no reason -> Runtime

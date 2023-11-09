@@ -4,10 +4,10 @@
              http://www.springframework.org/schema/webflow/spring-webflow-2.0.xsd">
             
 
-    
+     
    <input name="addressIn"  />   
     
-   <!-- 
+   <!--  
    <input name="addressIn"  value="flowScope.address" /> -->
    
    

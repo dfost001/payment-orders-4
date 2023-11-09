@@ -59,7 +59,7 @@ public class WebflowDebug {
 					"checkout-flow entered with an empty cart");
 		try {
 			
-		   this.throwEmptyCart(cart, ctx);
+		   this.throwEmptyCart(cart, ctx); //MVC Cart
 		   
 		} catch (WebflowCartEmptyException e) {
 			throw new OnRenderCartEmptyException();

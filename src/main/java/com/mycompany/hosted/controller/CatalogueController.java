@@ -66,6 +66,10 @@ public class CatalogueController {
 	
 	
 	@SuppressWarnings("unchecked")
+	/*
+	 * CartController redirects to this Controller with generated messages 
+	 * as Flash attributes transparently added to the ModelMap
+	 */
 	private void addModelAttributes(ModelMap map) {
 		
 		successMessages = (List<String>) map.get("successMessages");

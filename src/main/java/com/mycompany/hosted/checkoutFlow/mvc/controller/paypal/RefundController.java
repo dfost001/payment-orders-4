@@ -2,7 +2,7 @@ package com.mycompany.hosted.checkoutFlow.mvc.controller.paypal;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-
+import java.text.MessageFormat;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -54,9 +54,9 @@ public class RefundController {
 	
 	private boolean testRetrieveEx = true;
 	
-	private boolean testPrintResponseOrThrow = false;
+	private boolean testPrintResponseOrThrow = true; //RefundIdException thrown before order updated
 	
-	private boolean testRefundIdException = true;
+	private boolean testRefundIdException = false; //Thrown after order updated
 
 	@Autowired
 	private PayPalClient payPalClient;
@@ -106,7 +106,10 @@ public class RefundController {
 		 
 		   System.out.println("RefundController#refund: statusCode = " + response.statusCode());
 		 
-		   refundId = debugPrintResponseOrThrow(response.result()); //To do: evaluate status field: Throws test
+		   refundId = debugPrintResponseOrThrow(response.result()); 
+		   
+		  /* if(evalStatus())
+			   updateOrderAttrs(); */
 		   
 		   OrderPayment updated = this.updateOrderStatus(orderPayment, response);	//Initalize from refund result  
 		    
@@ -286,9 +289,18 @@ public class RefundController {
 	
 	private String debugPrintResponseOrThrow(Refund refund) throws RefundIdException {		
 		
-		System.out.println("RefundController#debugPrintResponse: id=" 
-			 + refund.id() + " amount="
-		     + refund.amount().value());			
+		String id = refund.id();
+		String amount = refund.amount().value();
+		String createTime = refund.createTime();
+		String updateTime = refund.updateTime();
+		String reason = refund.statusDetails() == null ? null : refund.statusDetails().reason() ;
+		String status = refund.status();		
+	
+		
+		String debug = MessageFormat.format("id={0} amount={1} createTime={2} updateTime={3}"
+				+ " reason={4} status={5}", id, amount, createTime, updateTime, reason, status);
+		
+		System.out.println(debug);
 		
 		if(refund.id() == null)
 		   throw new RefundIdException();

@@ -60,10 +60,10 @@ public class OrderController {
 
 			session.setAttribute(WebFlowConstants.PAYPAL_SERVER_ID, orderId);
 
-		} catch (CheckoutHttpException ex) {
+		} catch (CheckoutHttpException ex) { //Thrown from CreateOrder2#create
 			throw ex;
 		} catch (Exception ex) {
-			throw new CheckoutHttpException(ex, "createOrder");
+			throw EhrLogger.initCheckoutException(ex, "create", null, null, null); // null -> Response, Id, Persist-Id
 		}
 
 		return orderId;

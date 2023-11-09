@@ -5,6 +5,7 @@ import java.io.IOException;
 import com.paypal.http.Headers;
 
 
+@SuppressWarnings("serial")
 public class HttpException extends IOException {
 
 	private Headers headers;

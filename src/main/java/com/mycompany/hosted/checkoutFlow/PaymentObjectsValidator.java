@@ -41,7 +41,7 @@ public class PaymentObjectsValidator {
 		 
 	 if(details.getPayPalResourceId() == null || details.getPayPalResourceId().isEmpty()) {
 		 
-		   err += "PaymentDetails has an uninitialized OrderId";
+		   err += "PaymentDetails has an uninitialized Payment Resource Id";
 		
 	}
 	

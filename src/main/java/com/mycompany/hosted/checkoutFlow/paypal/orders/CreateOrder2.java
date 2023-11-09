@@ -36,7 +36,7 @@ public class CreateOrder2 {
 	
 	private final String description = "Hartley Book-Sellers";
 	
-	private final String softDescriptor = "Hartley-BookSellers";
+	private final String softDescriptor = "Hartley-Books";
 	
 	private String referenceId = "PUHF";	
 	
@@ -45,6 +45,8 @@ public class CreateOrder2 {
 	private boolean testRecoverableException = false;
 	
 	private boolean testIdNotAssigned = false;
+	
+	private boolean testFaultyRequest = false;
 	
 	@Autowired
 	private PayPalClient payClient;	
@@ -64,7 +66,7 @@ public class CreateOrder2 {
 		
 		if(testRecoverableException) {
 			
-			initTestException(response);
+			initTestException(response); //Throws exception
 		}
 
 	    OrdersCreateRequest request = new OrdersCreateRequest();
@@ -160,6 +162,12 @@ public class CreateOrder2 {
 	 unit.referenceId(this.referenceId).description(description).customId(this.customId)
 	      .softDescriptor(softDescriptor);
 	 
+	 if(this.testFaultyRequest) {
+		 this.testFaultyRequest = false;
+		 unit.amountWithBreakdown(initFaultyAmount(cart)) ;
+		 return unit;
+	 }
+	 
 	 unit.amountWithBreakdown(initAmountWithBreakdown(cart));	
 	 
 	 unit.items(initItemList(cart));
@@ -174,6 +182,22 @@ public class CreateOrder2 {
 	 AmountWithBreakdown amountWith = new AmountWithBreakdown()
 			 .currencyCode("USD")
 			 .value(cart.getFormattedGrand())
+			 .amountBreakdown(
+					 new AmountBreakdown().itemTotal(
+							 new Money().currencyCode("USD").value(cart.getFormattedSubtotal()))
+		                .shipping(
+		                	 new Money().currencyCode("USD").value(cart.getFormattedShipping()))
+		                .handling(new Money().currencyCode("USD").value("0.00"))
+		                .taxTotal(new Money().currencyCode("USD").value(cart.getFormattedTax()))
+		                .shippingDiscount(new Money().currencyCode("USD").value("0.00"))
+		       );
+	 return amountWith;
+ }
+ 
+ private AmountWithBreakdown initFaultyAmount(Cart cart) {
+	 AmountWithBreakdown amountWith = new AmountWithBreakdown()
+			 .currencyCode("USD")
+			 .value("0.00")
 			 .amountBreakdown(
 					 new AmountBreakdown().itemTotal(
 							 new Money().currencyCode("USD").value(cart.getFormattedSubtotal()))

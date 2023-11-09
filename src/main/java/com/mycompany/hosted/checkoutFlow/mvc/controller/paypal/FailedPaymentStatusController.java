@@ -84,7 +84,8 @@ public class FailedPaymentStatusController {
 		return "jsp/paymentFailedStatus";
 	}
 	/*
-	 * Always returns true unless error occurred at Capture or a Runtime is thrown
+	 * Returns if error occurred at Capture
+	 * Throws Runtime if createdStatus is Null or status indicates success
 	 */
 	private boolean isGetDetailsError(PaymentDetails details) {		
 		
