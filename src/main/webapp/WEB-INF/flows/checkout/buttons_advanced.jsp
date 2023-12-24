@@ -148,6 +148,9 @@
     <div class="modal-content">
       <div class="modal-header">       
         <h4 class="modal-title">Review Details</h4>
+         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
       </div>
       <div class="modal-body">
       
@@ -170,7 +173,9 @@
         </form>
        
       </div><!-- end modal-body -->
-     
+     <div class="modal-footer">        
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
     </div><!-- end modal-content -->
   </div><!-- end modal-dialog -->
 </div><!-- end modal -->
@@ -179,7 +184,7 @@
   <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">       
-        <h4 class="modal-title">Review Details</h4>
+        <h4 class="modal-title">Review Details</h4>         
       </div>
       <div class="modal-body">
       
@@ -196,7 +201,10 @@
         </form>
        
       </div><!-- end modal-body -->
-     
+     <div class="modal-footer">        
+       <p style="font-size:10pt; font-style:italic; color:blue; font-weight:bold; text-align:center"> 
+             Please click support to complete your order:  </p>
+      </div>
     </div><!-- end modal-content -->
   </div><!-- end modal-dialog -->
 </div><!-- end modal -->
@@ -205,7 +213,7 @@
     
     var options = {
     		backdrop: 'static', 
-    		keyboard: false, //don't close on escape
+    		keyboard: false, //close on escape
     		show:false //don't show on initialize
     };
     

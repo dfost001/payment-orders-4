@@ -84,9 +84,7 @@ public class RefundController {
 		String refundId = null;
 		
 	try {	
-		   orderPayment = processOrder(orderId); //Throws NotRetrievableException for OrderNotFound
-		   
-		   
+		   orderPayment = processOrder(orderId); //Throws NotRetrievableException for OrderNotFound		   
 		
 		   if(this.alreadyRefunded(orderPayment)) {
 			
@@ -102,14 +100,14 @@ public class RefundController {
 		
 		   refundRequest.prefer("return=representation");	   
 		
-		   response = payPalClient.client().execute(refundRequest);
-		 
+		   response = payPalClient.client().execute(refundRequest);		
+		   
 		   System.out.println("RefundController#refund: statusCode = " + response.statusCode());
 		 
-		   refundId = debugPrintResponseOrThrow(response.result()); 
+		   refundId = debugPrintResponseOrThrow(response.result()); 		   
 		   
 		  /* if(evalStatus())
-			   updateOrderAttrs(); */
+			   updateOrderAttrs(); --So Refund details can be shown on error view */
 		   
 		   OrderPayment updated = this.updateOrderStatus(orderPayment, response);	//Initalize from refund result  
 		    
@@ -247,7 +245,7 @@ public class RefundController {
 			
 			updated = jpa.updateRefundedOrder(order);	
 			
-			//debugPrintUpdatedOrder(updated); // Merge without cascade set on @ManyToOne throws Runtime
+			//debugPrintUpdatedOrder(updated); // Merge without cascade set on @ManyToOne ServiceDetails throws Runtime
 			
 		} catch (Exception ex ) {		
 			

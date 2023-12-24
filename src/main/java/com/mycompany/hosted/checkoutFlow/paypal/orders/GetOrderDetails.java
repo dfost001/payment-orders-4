@@ -59,7 +59,7 @@ public class GetOrderDetails  {
 		    
 		    try {
 		    	
-		       orderId = evalOrderId(ctx); //throws IllegalArgument for null
+		       orderId = evalOrderId(ctx); //throws IllegalArgument for null server-generated Id
 		       
 		       this.compareScriptToServerId(ctx, orderId); //throws if not equal, can refine message
 		       

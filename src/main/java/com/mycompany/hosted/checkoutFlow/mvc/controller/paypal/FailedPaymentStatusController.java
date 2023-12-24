@@ -40,6 +40,8 @@ public class FailedPaymentStatusController {
 	
 	private final String CVV_INVALID_MSG = "CVV Security Code is invalid";
 	
+	private final String CVV_NOT_VALIDATED = "CVV was not evaluated due to a card number error.";
+	
 	private final String CARD_INVALID_MSG = "The card cannot be accepted. Try using a different card: ";
 	
 	private final String TRANSACT_NOT_PROCCESSED = "The transaction cannot be completed. Please contact " +
@@ -95,7 +97,7 @@ public class FailedPaymentStatusController {
 		
 		if(details.getCreatedStatus() == null)
 			EhrLogger.throwIllegalArg(this.getClass(), "isGetDetailsError", 
-					"PaymentDetails#createdStatus is null");
+					"PaymentDetails#createdStatus is null. Should have been evaluated at GetDetails. ");
 		
 		switch (details.getCreatedStatus()) {
 		   case CREATED: 
@@ -103,7 +105,7 @@ public class FailedPaymentStatusController {
 		   case APPROVED: 
 		   case COMPLETED: 
 			   EhrLogger.throwIllegalArg(this.getClass(), "isGetDetailsError", 
-						"PaymentDetails#createdStatus has a successful expected value.");
+						"PaymentDetails#createdStatus has an unexpected successful value.");
 		   case PAYER_ACTION_REQUIRED:	 
 			   EhrLogger.throwIllegalArg(this.getClass(), "isGetDetailsError", 
 						"PaymentDetails#createdStatus contains PAYER_ACTION_REQUIRED - developer error");
@@ -158,6 +160,7 @@ public class FailedPaymentStatusController {
 		case "P" :
 		case "S" :
 		case "X" :
+		   this.messages.add(CVV_NOT_VALIDATED)	;
 		   isError=false;	
 		   break;
 		default: 

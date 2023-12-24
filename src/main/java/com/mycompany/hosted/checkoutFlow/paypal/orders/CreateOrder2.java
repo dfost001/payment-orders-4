@@ -46,7 +46,7 @@ public class CreateOrder2 {
 	
 	private boolean testIdNotAssigned = false;
 	
-	private boolean testFaultyRequest = false;
+	private boolean testFaultyRequest = true;
 	
 	@Autowired
 	private PayPalClient payClient;	
@@ -160,7 +160,11 @@ public class CreateOrder2 {
 	 PurchaseUnitRequest unit = new PurchaseUnitRequest();
 	 
 	 unit.referenceId(this.referenceId).description(description).customId(this.customId)
-	      .softDescriptor(softDescriptor);
+	      .softDescriptor(softDescriptor);	
+	 
+	 unit.items(initItemList(cart));
+	 
+	 unit.shippingDetail(initShippingAddress(shipping));
 	 
 	 if(this.testFaultyRequest) {
 		 this.testFaultyRequest = false;
@@ -169,10 +173,6 @@ public class CreateOrder2 {
 	 }
 	 
 	 unit.amountWithBreakdown(initAmountWithBreakdown(cart));	
-	 
-	 unit.items(initItemList(cart));
-	 
-	 unit.shippingDetail(initShippingAddress(shipping));
 	 
 	 return unit;
  }

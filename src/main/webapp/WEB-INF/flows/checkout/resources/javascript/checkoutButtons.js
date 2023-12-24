@@ -130,7 +130,7 @@ $(document).ready(function(){
 	
  
 	
-	var doSubmitHandler = function(cardFields) {
+	var doSubmitHandler = function(cardFields) {		
 		
 		document.querySelector("#card-form").addEventListener("submit", function(event) {
 		  
@@ -169,41 +169,42 @@ $(document).ready(function(){
 			    
             } catch (e) { 
 				
-				//not working for an invalid/empty order id
+				//not working for a custom error thrown invalid/empty order id
 				
 				alert("Submit callback exception:" + e);
 				
 				return;
 										
-			}	 	    
-			
+			}	           
+                          
+			 $("input[name='cardHolderName']").val(
+			 $("#card-holder-name").val().trim()); //Note:trim is important for GetDetails#compare, if testing rejected card
+			 $("input[name='streetAddress']").val(
+			 $("#card-billing-address-street").val());
+			 $("input[name='region']").val(
+			 $("#card-billing-address-state").val());
+			 $("input[name='postalCode']").val(
+			 $("#card-billing-address-zip").val());
+			 $("input[name='city']").val(
+			 $("#card-billing-address-city").val());
+			 $("input[name='countryCode']").val(
+			 $("#card-billing-address-country").val());		
+			 
 			 $("#myModal").modal("show");
 			 
-			 $("input[name='cardHolderName']").val(
-					 $("#card-holder-name").val().trim()); //Note:trim is important for GetDetails#compare, if testing rejected card
-			 $("input[name='streetAddress']").val(
-					 $("#card-billing-address-street").val());
-			 $("input[name='region']").val(
-					 $("#card-billing-address-state").val());
-			 $("input[name='postalCode']").val(
-					 $("#card-billing-address-zip").val());
-			 $("input[name='city']").val(
-					 $("#card-billing-address-city").val());
-			 $("input[name='countryCode']").val(
-		 			 $("#card-billing-address-country").val());		 
-			
 		}); //end addEventListener
 	}; // end doSubmit	
 	
 	
-	function doHostedFields() {
+	function doHostedFields() {		
+		
 		try {
 	
 	      paypal.HostedFields.render({    	 
 	    	    	
-	        createOrder: function() {
+	        createOrder: function() {        	 
 	        	
-	              return fetch(contextPath() + '/spring/paypal/order/create', {
+	              return  fetch(contextPath() + '/spring/paypal/order/create', {
 	        	  
 	        	  method: 'post',
 	        	  headers: {
@@ -220,13 +221,19 @@ $(document).ready(function(){
 	        	  
 	        	    if(data.id)	 {  
 	        	    
-	        	      $("input[name='paymentId']").val(data.id);	        	      
+	        	      $("input[name='paymentId']").val(data.id);	  
+	        	      
+	        	    //  window.localStorage.setItem("idObtained", "true");
 	
 	       	          return data.id;
 	        	    }
 	        	    else {
 	        	    	
-	        	    	$("#myModalError").modal("show");	     		  
+	        	    	//window.localStorage.setItem("idObtained", "false");
+	        	    	
+	        	    	$("#myModalError").modal("show");	
+	        	    	
+	        	    	//throw new Error("Server did not return an Id"); --not working
 	        		   
 	        	    }
 	        	
@@ -274,7 +281,7 @@ $(document).ready(function(){
 	    } catch(e) {
 	    	  alert("Error caught: " + e);}
 	    
-	   // alert("Fields rendered");
+	  
 	    
 	} //end doHostedFields
 	

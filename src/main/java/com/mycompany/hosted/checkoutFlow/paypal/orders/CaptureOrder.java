@@ -236,7 +236,7 @@ public class CaptureOrder {
 		    		  "CaptureOrder#initCaptureId", capture.status(), capture.id(), order.status()));	    
 		      
 		      boolean isFailedStatusDetails = false;
-		      boolean isFailedCaptureStatus = false;
+		      
 		      boolean isFailedProcessorResponse = false;
 		      
 		      if(capture.captureStatusDetails() != null) {	    	  
@@ -254,6 +254,8 @@ public class CaptureOrder {
 		      if(isFailedProcessorCode(capture.processorResponse())) {
 		    	  isFailedProcessorResponse = true; //Probably not necessary since capture status will be DECLINED
 		      }
+		      
+		      boolean isFailedCaptureStatus = false;
 		      
 		      if(capture.status().equals(CaptureStatusEnum.DECLINED.name())
 		    		  || capture.status().equals(CaptureStatusEnum.FAILED.name())) {       	  
