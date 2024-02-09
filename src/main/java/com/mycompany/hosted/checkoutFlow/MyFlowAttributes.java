@@ -6,9 +6,10 @@ import java.io.Serializable;
 import com.mycompany.hosted.model.Customer;
 import com.mycompany.hosted.model.PostalAddress;
 import com.mycompany.hosted.model.ShipAddress;
+import com.mycompany.hosted.cart.Cart;
 import com.mycompany.hosted.cart.CartItem;
+import com.mycompany.hosted.exception_handler.EhrLogger;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -40,12 +41,16 @@ public class MyFlowAttributes implements Serializable {
 	
 	public List<CartItem> getFlowCartItems() {
 		if(flowCartItems == null)
-			return new ArrayList<CartItem>();
+			EhrLogger.throwIllegalArg(this.getClass(), "getFlowCartItems", 
+					"Property has not been set. ");
 		return flowCartItems;
 	}
 
-	public void setFlowCartItems(List<CartItem> mvcCartItems) {
-		this.flowCartItems = mvcCartItems;
+	public void setFlowCartItems(Cart cart) {
+		if(cart == null)
+			EhrLogger.throwIllegalArg(this.getClass(), "setFlowCartItems", 
+					"Passed in Cart param is null. ");
+		this.flowCartItems = cart.getCartList();
 	}
 
 	public void evalFormTitle(PostalAddress addr) {
@@ -70,6 +75,8 @@ public class MyFlowAttributes implements Serializable {
 	public void setCustomerInsertion(boolean isCustomerInsertion) {
 		this.isCustomerInsertion = isCustomerInsertion;
 	}
+	
+	
 
 	public void preserveMessagesIntoSession(RequestContext request, MessageContext msgCtx) {
 		

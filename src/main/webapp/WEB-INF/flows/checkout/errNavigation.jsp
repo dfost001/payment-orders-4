@@ -82,7 +82,7 @@
                </c:when>
                <c:otherwise>
                    Errors may occur if you are using the browser to navigate
-                   <a href="${flowExecutionUrl}&_eventId=alertViewShoppingCart"
+                   <a href="${flowExecutionUrl}&_eventId=viewShoppingCart"
                       class="alert-link"> View Shopping Cart </a>
                </c:otherwise>
            </c:choose>   

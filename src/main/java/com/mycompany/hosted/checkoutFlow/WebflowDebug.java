@@ -19,22 +19,16 @@ public class WebflowDebug {
 
 	public static final String EXCEPTION_KEY = "exception";
 
-	public void throwEmptyCart(Cart cart, RequestContext ctx) throws WebflowCartEmptyException {
+	public void throwEmptyCart(Cart cart, RequestContext ctx, MyFlowAttributes flowAttrs) 
+			throws WebflowCartEmptyException {
 		
-		System.out.println("WebflowDebug#throwEmptyCart: executing");		
+		System.out.println("WebflowDebug#throwEmptyCart: executing");				
+		
+		this.checkMvcCart(cart, ctx);
+		
+		flowAttrs.setFlowCartItems(cart);
 
-		throwNullValue(cart, "Cart");
-
-		Cart mvcCart = (Cart) ctx.getExternalContext().getSessionMap().get("cart");
-
-		if (!mvcCart.equals(cart)) {
-
-			throwApplicationException("throwEmptyCart", "Webflow Cart does not point to cart in Http session");
-		}
-
-		List<CartItem> items = cart.getCartList();		
-
-		if (items == null || items.size() == 0) {
+		if (cart.getCartList().size() == 0) {
 
 			WebflowCartEmptyException ex = new WebflowCartEmptyException();
 
@@ -48,34 +42,47 @@ public class WebflowDebug {
 
 	} // end eval
 	
+    private void checkMvcCart(Cart cart, RequestContext ctx) {
+		
+		if(cart == null)
+			throwApplicationException("throwEmptyCart", "Cart passed to procedure is null.");
+		
+		Cart mvcCart = (Cart) ctx.getExternalContext().getSessionMap().get("cart");
+
+		if (!cart.equals(mvcCart)) {
+
+			throwApplicationException("throwEmptyCart", "Webflow Cart does not point to cart in Http session");
+		}		
+
+		List<CartItem> items = cart.getCartList();	
+		
+		if(items == null) {
+			throwApplicationException("throwEmptyCart", "Cart#getCartList returned a null");
+		}
+	}
+	
 	public void evalCartOnRender(RequestContext ctx, Cart cart, 
 			MyFlowAttributes flowAttrs) throws OnRenderCartEmptyException{
 		
 		List<CartItem> items = flowAttrs.getFlowCartItems();
 		
-		if(items == null || items.isEmpty())
+		if(items == null)
+			
+			throwApplicationException("evalCartOnRender",
+					"MyFlowAttributes#flowCartItems property is not set or set with null. ");
+		
+		else if(items.isEmpty())
 			
 			throwApplicationException("evalCartOnRender",
 					"checkout-flow entered with an empty cart");
 		try {
 			
-		   this.throwEmptyCart(cart, ctx); //MVC Cart
+		   this.throwEmptyCart(cart, ctx, flowAttrs); 
 		   
 		} catch (WebflowCartEmptyException e) {
 			throw new OnRenderCartEmptyException();
 		}
-	}
-	
-    private void throwNullValue(Object obj, String title) {    	
-		
-		
-		if(obj == null)
-			throw new IllegalArgumentException(
-					
-					EhrLogger.doMessage(this.getClass(), "throwNullValue",
-							 title + "is null"));
-		
-	}
+	} 
     
     private void throwApplicationException(String method, String message) {
     	

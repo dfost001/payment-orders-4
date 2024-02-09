@@ -13,15 +13,11 @@
      
      <input name="RESTORE_FAILURE" />
      
-     <input name="mode" />
-     
-   <on-start>
-      <evaluate expression="myFlowAttrs.setFlowCartItems(cart.getCartList())" />
-   </on-start>  
+     <input name="mode" />         
     
    <action-state id="throwEmptyCart"  >
       
-       <evaluate expression="webflowDebug.throwEmptyCart(cart, flowRequestContext)" /> 
+       <evaluate expression="webflowDebug.throwEmptyCart(cart, flowRequestContext, myFlowAttrs)" /> 
        
        <transition to="evalPaymentState" />
        
@@ -29,8 +25,7 @@
             to="errNavigation"     />  
    </action-state>   
       
-     <action-state id="evalPaymentState"> 
-      
+     <action-state id="evalPaymentState">       
        <evaluate expression="paymentStateAttrs.evalPaymentState(
                    flowRequestContext, ERR_GET_DETAIL, ERR_ON_CAPTURE, myFlowAttrs)" />    
                    
@@ -44,8 +39,7 @@
        
         <transition on="LOGGED_IN" to="selectShipAddress" />
                     
-       <transition on="NONE" to="login" />    
-      
+       <transition on="NONE" to="login" />  
      </action-state>    
      
      <view-state id="login" view="login.jsp">   
@@ -53,8 +47,7 @@
         <on-entry>          
            <evaluate expression="evalApplicationState.setViewScopeComparisonAttrs(flowRequestContext)" />      
            <set name="viewScope.errCustomerId"  value="flashScope.errCustomerId" />
-           <set name="viewScope.errors" value="flashScope.errors" /> 
-           <evaluate expression="webflowDebug.debugPrintOnRefresh(flowRequestContext, 'on-entry')"   />      
+           <set name="viewScope.errors" value="flashScope.errors" />                 
         </on-entry>   
         
         <on-render>           
@@ -221,8 +214,7 @@
    
    <view-state id="errNavigation" view="errNavigation.jsp">
       <on-entry>
-        <set name="viewScope.exception" value="flowRequestContext.flashScope.exception" />
-         <evaluate expression="webflowDebug.debugPrintOnRefresh(flowRequestContext, 'on-entry')"   />  
+        <set name="viewScope.exception" value="flowRequestContext.flashScope.exception" />         
       </on-entry>
       <on-render>
          <evaluate expression="webflowDebug.debugPrintOnRefresh(flowRequestContext, 'on-render')"   />  

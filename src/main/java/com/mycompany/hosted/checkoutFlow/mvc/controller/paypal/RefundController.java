@@ -64,10 +64,8 @@ public class RefundController {
 	@Autowired
 	private CustomerJpa jpa;	
 	
-	private HttpServletRequest httpRequest;
-	
-	private ErrorDetailBean errorBean;
-	
+	private HttpServletRequest httpRequest;	
+		
 	@RequestMapping(value="/refund/request/{orderId}/{serviceId}/{captureId}", method=RequestMethod.GET)
 	public String refund(@PathVariable("orderId") Integer orderId,
 			@PathVariable("serviceId") String payPalId,
@@ -102,7 +100,7 @@ public class RefundController {
 		
 		   response = payPalClient.client().execute(refundRequest);		
 		   
-		   System.out.println("RefundController#refund: statusCode = " + response.statusCode());
+		   EhrLogger.consolePrint(this.getClass(), "refund", "statusCode = " + response.statusCode());
 		 
 		   refundId = debugPrintResponseOrThrow(response.result()); 		   
 		   
@@ -221,16 +219,13 @@ public class RefundController {
 		
 		String json = GetOrderDetails.debugPrintJson(response);	 
 		
-		initRefundedOrder(order, response.result(), json);
-		
-		EhrLogger.consolePrint(this.getClass(), "updateOrderStatus",
-				"initRefundedOrder returned: refundId=" + order.getServiceDetail().getRefundId());
+		initRefundedOrder(order, response.result(), json);		
 		
 		if(order.getOrderId() <= 0) {
 			
 			String err = "Payment successfuly refunded for error Order: #" + order.getOrderId();		
 			
-			errorBean = WebFlowConstants.errorBeanFromServletContext(httpRequest);
+			ErrorDetailBean errorBean = WebFlowConstants.errorBeanFromServletContext(httpRequest);
 			
 			errorBean.addDetailToList(order, order.getOrderId(), err,
 					this.getClass().getCanonicalName() + 
@@ -249,7 +244,7 @@ public class RefundController {
 			
 		} catch (Exception ex ) {		
 			
-			errorBean = WebFlowConstants.errorBeanFromServletContext(httpRequest);
+			ErrorDetailBean errorBean = WebFlowConstants.errorBeanFromServletContext(httpRequest);
 			
 			errorBean.addDetailToList(order, order.getOrderId(),  ex,
 				this.getClass().getCanonicalName() + "#updateOrderStatus", 

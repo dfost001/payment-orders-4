@@ -91,9 +91,9 @@ public class EvalApplicationState {
 		
 		boolean expectedOnRender = false;
 		
-		String detail = "";
+		String detail = "";		
 		
-		String err = "";
+		String errDetailsView = "";
 		
 		String viewId = ctx.getCurrentState().getId();
 		
@@ -127,7 +127,7 @@ public class EvalApplicationState {
 	        expectedOnRender = currentSelectedAddress != null
 			   && currentPaymentDetails == null && entryCustomer == currentCustomer;	
 	        detail = entryCustomer != currentCustomer ?
-		    		"Customer on-entry is not equal to current session. (Browser navigation into card-form after an update) "
+		    		"Customer on-entry is not equal to current session. (Browser navigation into card-entry after an update) "
 	        		: ""; 
 	        break;
 	        
@@ -141,18 +141,18 @@ public class EvalApplicationState {
 	         
 		case "showDetails":  
 			
-            err = PaymentObjectsValidator.validateDetailsBeforeCapture(this.entryPaymentDetails);				
+            errDetailsView = PaymentObjectsValidator.validateDetailsBeforeCapture(this.entryPaymentDetails);				
 			
 			expectedOnEnter =  entrySelectedAddress != null				
 					&& entryPaymentDetails != null 					
-					&& err.isEmpty();	
+					&& errDetailsView.isEmpty();	
 			
 			expectedOnRender = currentSelectedAddress != null
 					&& currentPaymentDetails != null ;	
 			
             if(currentPaymentDetails != null) {
             	
-            	err = PaymentObjectsValidator.validateDetailsBeforeCapture(this.currentPaymentDetails);		
+            	String err = PaymentObjectsValidator.validateDetailsBeforeCapture(this.currentPaymentDetails);		
                 throwIfInvalidDetails(err);            	
 			}
             
@@ -162,7 +162,7 @@ public class EvalApplicationState {
 		
 		}//end switch
 		
-        evalExpectedState(expectedOnEnter, "on-enter", viewId, err);
+        evalExpectedState(expectedOnEnter, "on-enter", viewId, errDetailsView);
 		
 		evalExpectedState(expectedOnRender, "on-render", viewId, detail);
 		

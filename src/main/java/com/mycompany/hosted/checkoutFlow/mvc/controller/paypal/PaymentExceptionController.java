@@ -214,10 +214,7 @@ public class PaymentExceptionController {
 		case CAPTURE:
 			label = "Finalize Payment: ";
 			break;
-		case REFUND:
-			
-			System.out.println("PaymentExceptionController#assignFriendly case : responseCode="
-			    + model.getResponseCode());
+		case REFUND:			
 			
 			boolean refunded = false;
 			
@@ -229,7 +226,7 @@ public class PaymentExceptionController {
 				
 				if(refunded)
 				  friendly = "Your refund has already been issued. This is a duplicate request. ";
-			} else System.out.println("deserializeError skipped");
+			} 
 		}
 		
 		model.setFriendly(label + friendly);
@@ -242,9 +239,9 @@ public class PaymentExceptionController {
 		
 		ObjectMapper mapper = new ObjectMapper();
 		
-		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false); //All fields not defined by Java class 
 		
-		mapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+		mapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE); //Json field to Java
 		
 		PayPalErrorResponse err = null;
 		

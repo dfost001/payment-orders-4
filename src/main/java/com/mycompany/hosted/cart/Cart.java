@@ -91,6 +91,18 @@ public class Cart implements Serializable{
 	       return count;
 	   }
 	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((cartMap == null) ? 0 : cartMap.hashCode());
+		result = prime * result + ((context == null) ? 0 : context.hashCode());
+		result = prime * result + ((count == null) ? 0 : count.hashCode());
+		return result;
+	}
+
+	
+
 	public BigDecimal getSubtotal() {
 		
 		BigDecimal subtotal = new BigDecimal("0.00");

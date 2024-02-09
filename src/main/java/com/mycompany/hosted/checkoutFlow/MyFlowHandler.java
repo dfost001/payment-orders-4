@@ -108,9 +108,7 @@ public class MyFlowHandler extends AbstractFlowHandler {
         	 String encid = this.setCheckoutExIntoContext(request) ;
         	 return "/paymentException/initErrorModel?" +
         			 WebFlowConstants.CHECKOUT_EXCEPTION_REQUEST_PARAM
-        			 + "=" + encid;
-        			 
-        	 
+        			 + "=" + encid;        	 
          case "paymentStatusFailed" :
         	 return "/failedStatus/handle";
 		
