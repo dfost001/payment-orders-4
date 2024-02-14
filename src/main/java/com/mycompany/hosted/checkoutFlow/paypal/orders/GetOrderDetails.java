@@ -43,15 +43,16 @@ public class GetOrderDetails  {
 	 private boolean testPaymentSourceNullException = false;
 	 
 	 private String debugIntegrationType = "AdvancedCheckout" ;
+	 
+	 private Customer customer;
+	 
+	 private PaymentDetails paymentDetails;
 	
 	@Autowired
 	private PayPalClient payClient;	
 	
 	 public String getOrder(RequestContext ctx, MyFlowAttributes flowAttrs) 
-			 throws CheckoutHttpException {		 
-		  
-		   
-		   PaymentDetails paymentDetails = null;
+			 throws CheckoutHttpException {				  
 		   
 		   OrderId orderId = null;
 		   
@@ -59,21 +60,8 @@ public class GetOrderDetails  {
 		    
 		    try {
 		    	
-		       orderId = evalOrderId(ctx); //throws IllegalArgument for null server-generated Id
-		       
-		       this.compareScriptToServerId(ctx, orderId); //throws if not equal, can refine message
-		       
-		       Customer customer = handleNullCustomer(ctx);
-		    
-		       paymentDetails = new PaymentDetails(orderId.getId());		       
-		    
-		       if(debugIntegrationType.contentEquals("AdvancedCheckout" )) {
-		    	   
-		    	  compareAndInitPayerFromSession(paymentDetails, customer, ctx, 
-		    			  flowAttrs.isErrorGetDetails());
-		    	  
-		    	  flowAttrs.setErrorGetDetails(false);
-		       }
+		       orderId = evalRequest(ctx, flowAttrs); //Throws all IllegalArguments to catch-block		      
+		      
 		       if(testRecoverableException) {
 				   
 			      handleTestException(ctx,response, orderId.getId());
@@ -92,7 +80,7 @@ public class GetOrderDetails  {
 		    
 		    } catch(IOException | IllegalArgumentException | PaymentSourceNullException ex) {
 		    	
-		       String payPalId = orderId == null ? null : orderId.getId(); //IllegalArg if not in the session
+		       String payPalId = orderId == null ? null : orderId.getId(); 
 		    	
 		    	CheckoutHttpException httpEx = EhrLogger.initCheckoutException(ex,
 		    			"getOrder", response, payPalId, null);
@@ -116,6 +104,27 @@ public class GetOrderDetails  {
 		    	return "success";
 		    else return "failed";		   
 	  } 
+	 
+	 private OrderId evalRequest(RequestContext ctx, MyFlowAttributes flowAttrs) {
+		 
+		   OrderId orderId = evalOrderId(ctx); //throws IllegalArgument for null server-generated Id
+	       
+	       this.compareScriptToServerId(ctx, orderId); //throws if not equal, can refine message
+	       
+	       this.customer = handleNullCustomer(ctx);
+	    
+	       this.paymentDetails = new PaymentDetails(orderId.getId());		       
+	    
+	       if(debugIntegrationType.contentEquals("AdvancedCheckout" )) {
+	    	   
+	    	  compareAndInitPayerFromSession(paymentDetails, customer, ctx, 
+	    			  flowAttrs.isErrorGetDetails()); //throws IllegalArgument
+	    	  
+	    	  flowAttrs.setErrorGetDetails(false);
+	       }
+	       return orderId;
+		 
+	 }
 	 
   private Customer handleNullCustomer(RequestContext request) {
 	  
@@ -261,35 +270,33 @@ public class GetOrderDetails  {
 	
 	private String debugPrintOrder(HttpResponse<Order> response) {
 		
-		System.out.println("GetOrderDetails: responseCode=" + response.statusCode());	
+		EhrLogger.consolePrint(this.getClass(), "debugPrintOrder","responseCode=" + response.statusCode());	
 		
 		String err="";
 		
-		Order order = response.result();
-		
-		System.out.println("GetOrderDetails#debugPrintOrder:");
+		Order order = response.result();		
 		
 		if(order == null) {
-			err += "GetOrderDetails: HttpResponse<Order> is null";
-			System.out.println(err);
-			return err;
+			err += "HttpResponse<Order> is null";
+			EhrLogger.consolePrint(this.getClass(), "debugPrintOrder", err);	
+			return this.getClass().getCanonicalName() + ": " + err;
 		}
 		String id = order.id();
 		
 		if(id == null || id.isEmpty()) {
-			err += "GetOrderDetails: HttpResponse<Order>: Order ID in deserialized response is null or empty. ";		
-			System.out.println(err);
+			err += "Order#id in deserialized response is null or empty. ";		
+			EhrLogger.consolePrint(this.getClass(), "debugPrintOrder", err);	
 			
 		}
 		if(order.status() == null || order.status().isEmpty()) {
-			err += "GetOrderDetails: Order#status in deserialized response is null or empty. ";		
-			System.out.println(err);
+			err += "Order#status in deserialized response is null or empty. ";		
+			EhrLogger.consolePrint(this.getClass(), "debugPrintOrder", err);	
 			
 		}
 		
 		if(order.createTime() == null || order.createTime().isEmpty()) {
-			err += "GetOrderDetails: Order#createTime in deserialized response is null or empty. ";		
-			System.out.println(err);
+			err += "Order#createTime in deserialized response is null or empty. ";		
+			EhrLogger.consolePrint(this.getClass(), "debugPrintOrder", err);	
 			
 		}
 		     
@@ -297,10 +304,13 @@ public class GetOrderDetails  {
 		
 		if(units == null || units.isEmpty()) {
 			
-			err += "GetOrderDetails: HttpResponse<Order>: List<PurchaseUnit> is empty. ";
-			System.out.println(err);
+			err += "Order#purchaseUnits is empty. ";
+			EhrLogger.consolePrint(this.getClass(), "debugPrintOrder", err);	
 			
-		}			
+		}
+		if(!err.isEmpty())
+			err = this.getClass().getCanonicalName() + ": " + err;
+		
 		return err; 
 	}
 
@@ -396,15 +406,15 @@ public class GetOrderDetails  {
 		
 		String err = "";
 		
-		if(!cardHolderName.contentEquals(sesName))
+		if(!cardHolderName.trim().contentEquals(sesName.trim()))
 		    err = "CardHolderName ";
-		if(!streetAddress.contentEquals(sesAddress))
+		if(!streetAddress.trim().contentEquals(sesAddress.trim()))
 			err += "AddressLine ";
-		if(!region.contentEquals(sesRegion))
+		if(!region.trim().contentEquals(sesRegion.trim()))
 			err += "State " ;
-		if(!city.contentEquals(sesCity))
+		if(!city.trim().contentEquals(sesCity.trim()))
 			err = "City ";
-		if(!zip.contentEquals(sesZip))
+		if(!zip.trim().contentEquals(sesZip.trim()))
 			err = "PostalCode ";
 		
 		if(!err.isEmpty()) {			

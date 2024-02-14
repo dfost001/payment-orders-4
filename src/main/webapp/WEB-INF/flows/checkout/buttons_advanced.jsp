@@ -158,13 +158,14 @@
        
         <form action="${flowExecutionUrl}" method="post" id="formModal">
         <p>
+        
+           <input type="hidden" name="paymentId" value="" />
            <input type="hidden" name="cardHolderName" value="" />
            <input type="hidden" name="streetAddress" value="" />
            <input type="hidden" name="region" value="" />
            <input type="hidden" name="city" value="" />
            <input type="hidden" name="postalCode" value="" />
-           <input type="hidden" name="countryCode" value="" />
-           <input type="hidden" name="paymentId" value="" />
+           <input type="hidden" name="countryCode" value="" />           
         
            <input type="submit" name="_eventId_reviewDetails" class="btn btn-info btn-lg"
                value="Review Payment Details" />   
