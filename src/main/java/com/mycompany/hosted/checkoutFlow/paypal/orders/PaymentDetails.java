@@ -66,13 +66,13 @@ public class PaymentDetails implements Serializable{
 	
 	private String captureTime;		
 	
-	private GetDetailsStatus createdStatus; //Status at GetDetails, when order created
+	private GetDetailsStatus createdStatus; //Order#Status at GetDetails, when order created
 	
-	private CaptureStatusEnum captureStatus; //Status at Capture, same as created
+	private CaptureStatusEnum captureStatus; //Order#Status at Capture, same as created
 	
-	private GetDetailsStatus completionStatus; //Status contained by Capture transaction object
+	private GetDetailsStatus completionStatus; //Capture#Status contained by Capture transaction object
 	
-	private FailedReasonEnum statusReason;
+	private FailedReasonEnum statusReason; //Capture#captureStatusDetails#reason - reason for failed Capture
 	
 	private ProcessorResponse processorResponse;
 	

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import javax.servlet.http.HttpSession;
 
+
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -11,10 +12,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.mycompany.hosted.checkoutFlow.WebFlowConstants;
+import com.mycompany.hosted.checkoutFlow.paypal.orders.CaptureOrder;
 import com.mycompany.hosted.checkoutFlow.paypal.orders.PaymentDetails;
-import com.mycompany.hosted.checkoutFlow.paypal.orders.PaymentDetails.CaptureStatusEnum;
+
 import com.mycompany.hosted.exception_handler.EhrLogger;
 import com.mycompany.hosted.exception_handler.MvcNavigationException;
+import com.mycompany.hosted.formatter.StringUtil;
 import com.paypal.orders.ProcessorResponse;
 
 /*
@@ -38,9 +41,10 @@ public class FailedPaymentStatusController {
 	
 	private final String GET_DETAILS_MSG = "Unexpected VOIDED status returned for requested payment details. ";
 	
-	private final String CVV_INVALID_MSG = "CVV Security Code is invalid";
+	private final String CVV_INVALID_MSG = "CVV Security Code is invalid. ";
 	
-	private final String CVV_NOT_VALIDATED = "CVV was not evaluated due to a card number error.";
+	private final String CVV_INVALID_CARD_OK = "CVV is invalid, but your card-number validates. " 
+			+ "Not clear if payment was processed. Please contact the issuer.";
 	
 	private final String CARD_INVALID_MSG = "The card cannot be accepted. Try using a different card: ";
 	
@@ -48,6 +52,10 @@ public class FailedPaymentStatusController {
 	    "either the card-issuer or support: ";
 	
 	private final String CARD_DECLINED_NO_REASON = "Your card has been declined. No reason is assigned. Contact the issuer. " ;
+	
+	private final String STATUS_SUCCESS_WITH_FAILED_REASON = "Status SUCCESS With Failed Reason: " 
+			+ "Transacted-State is not certain. " 
+			+ "Please contact the card-issuer. ";
 	
 	private final String ADDRESS_ERR_MSG = "There is a problem with the Billing address. " +
 	  "Either the address does not match the card or a postal field (city, state, zip) is incorrect";
@@ -73,7 +81,7 @@ public class FailedPaymentStatusController {
 		}
 		
 		if(details.getStatusReason() != null)
-			messages.add("Failed Reason: " + details.getStatusReason().name());
+			messages.add("Failed Capture Reason: " + details.getStatusReason().name());
 		
 		this.evalCaptureStatusOrThrow(details, cardValid);
 		
@@ -125,12 +133,18 @@ public class FailedPaymentStatusController {
 		
 		if(resp == null) //Should have already been thrown from CaptureOrder
 			EhrLogger.throwIllegalArg(this.getClass(), "evalProcessorResponse", 
-					"ProcessorResponse property of PaymentDetails is null");		
+					"ProcessorResponse property of PaymentDetails is null");			
 		
-		if(isCvvError(resp.cvvCode())) {
-			messages.add(this.CVV_INVALID_MSG);
+		if(CaptureOrder.isCvvError(resp.cvvCode())) {
+			this.addCvvMessages(resp.cvvCode());
+			valid = false;
+		}
+		
+		if(CaptureOrder.isCvvError(resp.cvvCode()) && resp.getResponseCode().contentEquals("0000")) {
+			messages.add(this.CVV_INVALID_CARD_OK);
 			valid = false; 
 		}
+		
 		if(resp.responseCode() != null && !resp.responseCode().contentEquals("0000")) {
 			this.evalCardErrorMessage(resp.responseCode());
 			valid = false;
@@ -146,30 +160,32 @@ public class FailedPaymentStatusController {
 		return valid;		
 	}
 	
-	private boolean isCvvError(String cvvCode) {
+	private void addCvvMessages(String cvvCode) {
 		
-		if(cvvCode == null)
-		    return false;
+		if(StringUtil.isNullOrEmpty(cvvCode))
+			return;
 		
-		boolean isError = true;
+		String err = this.CVV_INVALID_MSG + ": ";
 		
 		switch(cvvCode) {
 		
-		case "E" :
-		case "M" :
-		case "P" :
-		case "S" :
-		case "X" :
-		   this.messages.add(CVV_NOT_VALIDATED)	;
-		   isError=false;	
-		   break;
+		case "P" : //Not Processed
+			err += "Not processed due to card error. ";
+			break;
+		case "E" :	//Error-Unrecognized response
+		case "S" :  //Service not supported
+		case "X" :  //No response
+		case "U" :	//Unknown issuer		  
+			err += "Undefined error. "	;
+			break;		  
+		case "I" : //Invalid
+		case "N" : //No Match			
 		default: 
-		   isError=true;
-		}
-		
-		return isError;
-		
+		   err += "Cannot be matched to a card. ";
+	   }
+		this.messages.add(err) ;
 	}
+	
 	
 	private void evalCardErrorMessage(String code) {
 		
@@ -185,7 +201,10 @@ public class FailedPaymentStatusController {
 			msg = this.TRANSACT_NOT_PROCCESSED + "Card is declined";
 			break;
 		case "00N7":
-			msg = this.TRANSACT_NOT_PROCCESSED + "CVC security digits failed";
+			msg = this.TRANSACT_NOT_PROCCESSED + "CVC security digits failed. A retry is possible.";
+			break;
+		case "5110":
+			msg = this.TRANSACT_NOT_PROCCESSED + "CVC security digits failed. Please contact the issuer. ";
 			break;
 		case "5180":
 			msg = this.CARD_INVALID_MSG + "Card digits entered incorrectly";
@@ -214,39 +233,19 @@ public class FailedPaymentStatusController {
 		
 		//Check on CaptureOrder code
 		if(cardValid && details.getStatusReason() == null) {
-			if(isValidCaptureStatus(details))
+			
+			if(CaptureOrder.isValidCaptureStatus(details))
 					EhrLogger.throwIllegalArg(this.getClass(), "evalCaptureStatusOrThrow", 
-							"No failure has been evaluated for ProcessorResponse, CaptureStatus");	
+					"No failure reasons and a succcess CaptureStatus - Incorrect redirect to this controller. ");
+			
 			else messages.add(CARD_DECLINED_NO_REASON);
+			
+		} else if(CaptureOrder.isValidCaptureStatus(details)) { //One or both failed reason
+			messages.add(STATUS_SUCCESS_WITH_FAILED_REASON);
 		}
 	}
 	
- public static boolean isValidCaptureStatus(PaymentDetails details) {
-		
-		boolean valid = false;
-		
-		CaptureStatusEnum status = details.getCaptureStatus();
-		
-		switch (status) {
-		case COMPLETED :
-		case PARTIALLY_REFUNDED:
-		case PENDING:
-		case REFUNDED:
-			valid = true;
-			break;
-		case FAILED:
-		case DECLINED:	
-			valid = false;
-			break;
-		default:
-			EhrLogger.throwIllegalArg(FailedPaymentStatusController.class, "isValidCaptureStatus", 
-					"Unknown Capture Status value.");
-			
-		}
-		
-		return valid;
-		
-	}
+
  
   /*  private void debugPrintFailedReason(PaymentDetails details) {
     	if(details.getStatusReason() != null)

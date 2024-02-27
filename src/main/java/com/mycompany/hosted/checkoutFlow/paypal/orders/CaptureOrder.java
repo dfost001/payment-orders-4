@@ -24,6 +24,7 @@ import com.mycompany.hosted.checkoutFlow.PaymentObjectsValidator;
 import com.mycompany.hosted.checkoutFlow.WebFlowConstants;
 import com.mycompany.hosted.checkoutFlow.exceptions.CheckoutHttpException;
 import com.mycompany.hosted.checkoutFlow.exceptions.ProcessorResponseNullException;
+import com.mycompany.hosted.checkoutFlow.mvc.controller.paypal.FailedPaymentStatusController;
 //import com.mycompany.hosted.checkoutFlow.mvc.controller.paypal.FailedPaymentStatusController;
 import com.mycompany.hosted.checkoutFlow.paypal.orders.PaymentDetails.CaptureStatusEnum;
 import com.mycompany.hosted.checkoutFlow.paypal.orders.PaymentDetails.FailedReasonEnum;
@@ -45,8 +46,9 @@ public class CaptureOrder {
 	private PayPalClient payClient;
 	
 	boolean testRecoverableException = false;
-	boolean testCaptureId = false;
-	boolean testProcessorResponse = false;
+	//boolean testCaptureId = false;
+	boolean testProcessorResponse = false; //see debugPrintProcessorOrThrow
+	boolean testFailedCvv = true; //see isFailedProcessorCode
 	
 	private String capturedPaymentId;
 	
@@ -60,7 +62,7 @@ public class CaptureOrder {
 	
 	public String capture(RequestContext ctx) throws CheckoutHttpException  {		
 		
-		 resetProperties();	
+		 resetProperties();	//Reset module-level captureId
 		
 		 PaymentDetails details = (PaymentDetails)ctx.getExternalContext()
 			       .getSessionMap()
@@ -88,7 +90,7 @@ public class CaptureOrder {
 	   
 	    response = payClient.client().execute(request); //throws IOException	    
 	       
-	    System.out.println("CaptureOrder#Status Code: " + response.statusCode());		   
+	    EhrLogger.consolePrint(this.getClass(), "capture", "Status Code: " + response.statusCode());		   
 	   
 	    Order order = response.result();	   
 	    
@@ -221,7 +223,7 @@ public class CaptureOrder {
 	  private String initCaptureId(Order order, PaymentDetails details, String json) 
 		         throws ProcessorResponseNullException {	
 		  
-		  System.out.println("Entering CaptureOrder#initCaptureId");   	  		      
+		      
 	     
 	      if(order.status().equals(CaptureStatusEnum.COMPLETED.name()) 
 	    		  && isNullOrEmpty(capture.id())) {
@@ -232,57 +234,34 @@ public class CaptureOrder {
 		      
 		  debugPrintProcessorResponseOrThrow(capture); 
 		      
-		  System.out.println(MessageFormat.format("{0}: capture.status={1} transId={2} order.status={3}", 
-		    		  "CaptureOrder#initCaptureId", capture.status(), capture.id(), order.status()));	    
+		  String debug = MessageFormat.format("capture.status={0} transId={1} order.status={2}", 
+		    		   capture.status(), capture.id(), order.status());	    
+		  
+		  EhrLogger.consolePrint(this.getClass(), "initCaptureId", debug);
+		  
+		  initPaymentDetails(order, details, json);	
 		      
-		      boolean isFailedStatusDetails = false;
-		      
-		      boolean isFailedProcessorResponse = false;
-		      
-		      if(capture.captureStatusDetails() != null) {	    	  
-		    	 
-		    	  String reason = capture.captureStatusDetails().reason();
-		    	 
-		    	  details.setStatusReason(FailedReasonEnum.valueOf(reason));	 
-		    	  
-		    	  System.out.println("CaptureOrder#initCaptureId: captureStatusDetails=" + reason);
-		    	  
-		    	  isFailedStatusDetails = true;
-		      }	  
-		      
-		    	  
-		      if(isFailedProcessorCode(capture.processorResponse())) {
-		    	  isFailedProcessorResponse = true; //Probably not necessary since capture status will be DECLINED
-		      }
-		      
-		      boolean isFailedCaptureStatus = false;
-		      
-		      if(capture.status().equals(CaptureStatusEnum.DECLINED.name())
-		    		  || capture.status().equals(CaptureStatusEnum.FAILED.name())) {       	  
-		    	  	    	  
-		    	 
-		    	  isFailedCaptureStatus = true;
-		      }
-		      
-		      //If status is FAILED/DECLINED and there is no reason -> Runtime
-		      if(isFailedCaptureStatus &&  !isFailedProcessorResponse && !isFailedStatusDetails)
-		    	  this.throwIllegalArg("initCaptureId",
-		    			  "Capture Status is FAILED, and StatusDetails and "
-		    			  + "ProcessorResponse indicate success");		      
+		  boolean isFailedStatusDetails = initCaptureStatusDetails(details) ;			       
 		     
+		  boolean isFailedProcessorResponse = isFailedProcessorCode(capture.processorResponse());		    	
 		      
-		      if(this.testCaptureId) {
-		    	  testCaptureId = false;
-		    	  this.throwIllegalArg("initCaptureId",
-		    			  "Test: Deserialized Order does not contain a CaptureId");
-		      }
+		  boolean isFailedCaptureStatus = !isValidCaptureStatus(details);      
 		      
-		      initPaymentDetails(order, details, json);	    
-		      
-		      if(isFailedCaptureStatus) 
-		    	  return "failed";
-		      
-		      return "success";		
+		  String status = "";
+		     
+		  if(!isFailedStatusDetails && !isFailedProcessorResponse)
+			   
+		   	  if(!isFailedCaptureStatus)
+		    		  status = "success";
+		   	  else status = "failed"; //Failed status with no reason is evaluated at Failed Controller
+		   
+		   else if(!isFailedCaptureStatus)  //else one or both failure reasons
+			   status = "failed"; //Successful Capture status with failed reason, evaluated at Controller
+		   
+		   else if(isFailedCaptureStatus)
+		       status = "failed"; //Failed Capture with failed reason
+		   
+		   return status;		
 	  }
 	  
 	  private void initPaymentDetails(Order order, PaymentDetails details, String json) {		 	
@@ -301,7 +280,20 @@ public class CaptureOrder {
 		  
 	  }
 	  
-	
+	  private boolean initCaptureStatusDetails(PaymentDetails details) {
+		  
+		  if(capture.captureStatusDetails() != null) {	    	  
+		    	 
+	    	  String reason = capture.captureStatusDetails().reason();
+	    	 
+	    	  details.setStatusReason(FailedReasonEnum.valueOf(reason));	
+	    	  
+	    	  EhrLogger.consolePrint(this.getClass(), "initCaptureId","captureStatusDetails=" + reason);		    	 
+	    	  
+	    	  return true;
+	      }	
+		  else return false;
+	  }
 	  
 	  private void debugPrintProcessorResponseOrThrow(Capture capture)
 			  throws ProcessorResponseNullException {
@@ -315,13 +307,12 @@ public class CaptureOrder {
 					 "debugPrintProcessorResponseOrThrow", "ProcessorResponse is null")
 					 );		  
 		  }
-		  else EhrLogger.consolePrint(this.getClass(), "debugPrintProcessorReponse",
-					 "Printing fields of ProcessorResponse: ");
+		 
 		  
 		  String line = MessageFormat.format("avsCode={0} cvvCode={1} responseCode={2}", 
 				  processor.avsCode(), processor.cvvCode(), processor.responseCode());
 		  
-		  System.out.println(line);
+		  EhrLogger.consolePrint(this.getClass(), "debugPrintProcessorResponseOrThrow", line);
 		  
 		  if(this.testProcessorResponse) {
 			  testProcessorResponse = false;
@@ -333,14 +324,74 @@ public class CaptureOrder {
 	
 	 private boolean isFailedProcessorCode(ProcessorResponse response) {
 		 
-		 if((response.responseCode() != null && !response.responseCode().equals("0000"))
+		 if(this.testFailedCvv) {
+			 response.cvvCode("N");
+			 testFailedCvv = false;
+		 }
+		 if( (response.responseCode() != null && !response.responseCode().equals("0000"))
 				 || response.getAvsCode() != null
-				 || response.cvvCode().contentEquals("N") 
-				 || response.cvvCode().contentEquals("I"))
+				 || isCvvError(response.cvvCode()))
             return true;
 		
 		 return false;
 	 }
+	 
+	 public static boolean isCvvError(String cvvCode) {
+		 
+		 if(cvvCode == null)
+			    return false;
+			
+			boolean isError = true;
+			
+			switch(cvvCode) {
+			case "M" :
+				isError = false;
+				break;
+			case "E" :			
+			case "P" :
+			case "S" :
+			case "X" :
+			case "U" :	
+			  //  Transaction-State uncertain
+			  isError = true;	
+			  break;
+			case "I" :
+			case "N" :
+				isError = true;
+				break ;
+			default: //For all others
+			   isError=true;
+			}
+			
+			return isError;
+	 }
+	 
+	 public static boolean isValidCaptureStatus(PaymentDetails details) {
+			
+			boolean valid = false;
+			
+			CaptureStatusEnum status = details.getCaptureStatus();
+			
+			switch (status) {
+			case COMPLETED :
+			case PARTIALLY_REFUNDED:
+			case PENDING:
+			case REFUNDED:
+				valid = true;
+				break;
+			case FAILED:
+			case DECLINED:	
+				valid = false;
+				break;
+			default:
+				EhrLogger.throwIllegalArg(FailedPaymentStatusController.class, "isValidCaptureStatus", 
+						"Unknown Capture Status value.");
+				
+			}
+			
+			return valid;
+			
+		}
 	  
 	 private boolean isNullOrEmpty(String value) {
 		 
