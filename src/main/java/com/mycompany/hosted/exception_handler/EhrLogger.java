@@ -5,6 +5,7 @@ import java.text.MessageFormat;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.mycompany.hosted.checkoutFlow.exceptions.CheckoutHttpException;
+import com.mycompany.hosted.checkoutFlow.exceptions.EndpointRuntimeReason;
 
 import com.paypal.http.HttpResponse;
 import com.paypal.http.exceptions.HttpException;
@@ -12,13 +13,13 @@ import com.paypal.http.exceptions.HttpException;
 public class EhrLogger {
 	
     public static CheckoutHttpException initCheckoutException(Exception ex, String method, 
-    		HttpResponse<?> response, String payPalId, Integer persistOrderId)	{
+    		HttpResponse<?> response, EndpointRuntimeReason reason)	{
     	
-    	CheckoutHttpException checkoutEx = new CheckoutHttpException(ex, method);
+    	CheckoutHttpException checkoutEx = new CheckoutHttpException(ex, method, reason);
     	
-    	checkoutEx.setPersistOrderId(persistOrderId);    	
+    	//checkoutEx.setPersistOrderId(persistOrderId);    	
     	
-    	checkoutEx.setPayPalId(payPalId);
+    	//checkoutEx.setPayPalId(payPalId);
     	
     	if(response != null)
     		checkoutEx.setResponseStatus(response.statusCode()); //IllegalArgumentException
@@ -32,6 +33,7 @@ public class EhrLogger {
     	return checkoutEx;
     	
     }
+ 
 	
 	 public static void throwNullValues(Class<?> handler, String method, String[] titles,
 			 Object...objects) {

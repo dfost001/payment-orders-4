@@ -23,6 +23,7 @@ import com.paypal.orders.Capture;
 import com.mycompany.hosted.checkoutFlow.PaymentObjectsValidator;
 import com.mycompany.hosted.checkoutFlow.WebFlowConstants;
 import com.mycompany.hosted.checkoutFlow.exceptions.CheckoutHttpException;
+import com.mycompany.hosted.checkoutFlow.exceptions.EndpointRuntimeReason;
 import com.mycompany.hosted.checkoutFlow.exceptions.ProcessorResponseNullException;
 import com.mycompany.hosted.checkoutFlow.mvc.controller.paypal.FailedPaymentStatusController;
 //import com.mycompany.hosted.checkoutFlow.mvc.controller.paypal.FailedPaymentStatusController;
@@ -54,6 +55,8 @@ public class CaptureOrder {
 	
 	private Capture capture;
 	
+	private EndpointRuntimeReason reason;
+	
 	private void resetProperties() {
 		
 		capturedPaymentId = "";
@@ -75,38 +78,39 @@ public class CaptureOrder {
 		 
 		 try {
 		 
-		 evalDetails(details);	//throws to catch-block for null or empty resource id	
+		    evalDetails(details);	//throws to catch-block for null or empty resource id	
 		
-		 if(testRecoverableException) {		 
+		    if(testRecoverableException) {		 
 			 
 			  doTestException(ctx, response, details.getPayPalResourceId());				
-		 }		
+		    }		
 		
-	    OrdersCaptureRequest request = new OrdersCaptureRequest(details.getPayPalResourceId());
+	        OrdersCaptureRequest request = new OrdersCaptureRequest(details.getPayPalResourceId());
 	    
-	    request.prefer("return=representation");	   
+	        request.prefer("return=representation");	   
 	    
-	    request.requestBody(buildRequestBody());
+	        request.requestBody(buildRequestBody());
 	   
-	    response = payClient.client().execute(request); //throws IOException	    
+	        response = payClient.client().execute(request); //throws IOException	    
 	       
-	    EhrLogger.consolePrint(this.getClass(), "capture", "Status Code: " + response.statusCode());		   
+	        EhrLogger.consolePrint(this.getClass(), "capture", "Status Code: " + response.statusCode());		   
 	   
-	    Order order = response.result();	   
+	        Order order = response.result();	   
 	    
-	    debugPrintOrder(order); //throws Runtime for uninitialized fields to catch block
+	        debugPrintOrder(order); //throws Runtime for uninitialized fields to catch block
 	    
-	    String json = GetOrderDetails.debugPrintJson(response);	 //Json re-serialized   
+	        String json = GetOrderDetails.debugPrintJson(response);	 //Json re-serialized   
 	    
-	    statusResult = initCaptureId(order, details,json); //"success" or "failed"
+	        statusResult = initCaptureId(order, details,json); //"success" or "failed"
 	    
-		} catch(IOException | RuntimeException | ProcessorResponseNullException e) {		
-			
-			String payPalId = details == null ? null : details.getPayPalResourceId(); //Error on evalDetails()
+		} catch(IOException | RuntimeException | ProcessorResponseNullException e) {			
 			
 			//persistOrderId = null
 			CheckoutHttpException httpEx = EhrLogger.initCheckoutException(e,
-					"capture", response, payPalId, null);
+					"capture", response, reason);
+			
+			String payPalId = details == null ? null : details.getPayPalResourceId(); //Error on evalDetails()
+			httpEx.setPayPalId(payPalId);
 			
 			httpEx.setCapturedPaymentId(this.capturedPaymentId);
 		    	
@@ -128,7 +132,7 @@ public class CaptureOrder {
 		    testRecoverableException = false; 				  
 		    
 		    CheckoutHttpException ex = EhrLogger.initCheckoutException(new Exception("Testing Recoverable 503 Status"),
-					"capture", response, resourceId, null); 			
+					"capture", response, EndpointRuntimeReason.CAPTURE_EXECUTE_IO); 			
 		    
 		    ex.setTestException(true);
 		    
@@ -148,9 +152,11 @@ public class CaptureOrder {
 		  
 		  String err = PaymentObjectsValidator.validateDetailsBeforeCapture(details);
 		  
-		  if(!err.isEmpty())	
+		  if(!err.isEmpty()) {	
+			  
+			 this.reason = EndpointRuntimeReason.CAPTURE_VALIDATE_DETAILS;
 			 EhrLogger.throwIllegalArg(this.getClass(), "evalDetails", err);
-		
+		  }
 	  }	
 	  
 	  private void debugPrintOrder(Order order) {
@@ -164,15 +170,14 @@ public class CaptureOrder {
 		  
 		   System.out.println("Status: " + order.status()); 
 		      
-		   System.out.println("Order ID: " + order.id());
-		   
-		   if(order.paymentSource() == null) //Evaluated in GetDetails
-	        	System.out.println("paymentSource is null"); 		   
+		   System.out.println("Order ID: " + order.id());		 	   
 		  
 		   List<PurchaseUnit> units = order.purchaseUnits();
 		   
 		   if(units == null) {
 			   err += " Order#List<PurchaseUnit> ";
+			   
+			   this.reason = EndpointRuntimeReason.CAPTURE_FIELDS_EMPTY;
 			  
 			   this.throwIllegalArg("debugPrintOrder", err);
 			  
@@ -181,22 +186,24 @@ public class CaptureOrder {
 		   PurchaseUnit purchaseUnit = order.purchaseUnits().get(0);
 		   
 		   if(purchaseUnit == null) {
-			   err += " Order#PurchaseUnit ";
-			  
+			   err += " Order#PurchaseUnit ";			   
+			   this.reason = EndpointRuntimeReason.CAPTURE_FIELDS_EMPTY;			  
 			   this.throwIllegalArg("debugPrintOrder", err);			  
 		   }
 		      
 		   PaymentCollection payments = purchaseUnit.payments();
 		   
 		   if(payments == null) {
-			   err += " Order#PaymentCollection ";			   
+			   err += " Order#PaymentCollection ";		
+			   this.reason = EndpointRuntimeReason.CAPTURE_FIELDS_EMPTY;
 			   this.throwIllegalArg("debugPrintOrder", err);	
 		   }
 		      
 		   List<Capture> captures = payments.captures();		  
 		      
 		   if(captures == null || captures.isEmpty()) {
-               err += "Order#PaymentCollection#List<Capture> "	;              
+               err += "Order#PaymentCollection#List<Capture> "	;     
+               this.reason = EndpointRuntimeReason.CAPTURE_FIELDS_EMPTY;
                this.throwIllegalArg("debugPrintOrder", err);	
 		   }
 		   
@@ -215,7 +222,8 @@ public class CaptureOrder {
 		   }
 		   
 		   if(!err.isEmpty()) {   		  
-			   err = "Order contains uninitialized fields: " + err;		     
+			   err = "Order contains uninitialized fields: " + err;	
+			   this.reason = EndpointRuntimeReason.CAPTURE_FIELDS_EMPTY;
 			   this.throwIllegalArg("debugPrintOrder", err);
 		   }
 	  }
@@ -228,6 +236,7 @@ public class CaptureOrder {
 	      if(order.status().equals(CaptureStatusEnum.COMPLETED.name()) 
 	    		  && isNullOrEmpty(capture.id())) {
 	    		  
+	    	      this.reason = EndpointRuntimeReason.CAPTURE_EMPTY_CAPTURE_ID;
 	    		  this.throwIllegalArg("initCaptureId",
 	    				  "Capture Status is COMPLETED and captureId is null");
 	      }	 
@@ -303,6 +312,9 @@ public class CaptureOrder {
 		  if(processor == null) {
 			 EhrLogger.consolePrint(this.getClass(), "debugPrintProcessorReponse",
 					 "Processor is null");
+			 
+			 this.reason = EndpointRuntimeReason.CAPTURE_NULL_PROCESSOR_RESPONSE;
+			 
 			 throw new ProcessorResponseNullException(EhrLogger.doMessage(this.getClass(),
 					 "debugPrintProcessorResponseOrThrow", "ProcessorResponse is null")
 					 );		  

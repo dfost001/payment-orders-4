@@ -18,6 +18,16 @@ import com.mycompany.hosted.exception_handler.EhrLogger;
 public class WebflowDebug {
 
 	public static final String EXCEPTION_KEY = "exception";
+	
+	/*
+	 * Property will be used at on-render evaluation
+	 */
+	public void assignMvcCart(Cart cart, RequestContext ctx, MyFlowAttributes myAttrs) {
+		
+		this.checkMvcCart(cart, ctx);
+		
+		myAttrs.setFlowCartItems(cart);
+	}
 
 	public void throwEmptyCart(Cart cart, RequestContext ctx, MyFlowAttributes flowAttrs) 
 			throws WebflowCartEmptyException {
@@ -25,8 +35,6 @@ public class WebflowDebug {
 		System.out.println("WebflowDebug#throwEmptyCart: executing");				
 		
 		this.checkMvcCart(cart, ctx);
-		
-		flowAttrs.setFlowCartItems(cart);
 
 		if (cart.getCartList().size() == 0) {
 

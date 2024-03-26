@@ -9,7 +9,7 @@ public class ErrorDetail {
 			PERSIST_ORDER_ERR,
 			REFUNDED_ONPERSIST_ERR,
 			NOT_RETRIEVABLE_FOR_REFUND,
-			REFUND_UPDATE_ERR					
+			REFUND_UPDATE_ERR						
 	}
 	
 	private ErrorDetailReason errorDetailReason;

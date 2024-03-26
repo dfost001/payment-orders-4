@@ -7,6 +7,8 @@ public class CheckoutHttpException extends Exception {
 	
 	private String method;
 	
+	private EndpointRuntimeReason reason;
+	
 	private boolean testException;
 	
 	private boolean isExpired = false;
@@ -21,13 +23,16 @@ public class CheckoutHttpException extends Exception {
 	
 	private String refundId;
 	
-	public CheckoutHttpException(Throwable cause, String method) {
+	public CheckoutHttpException(Throwable cause, String method, 
+			EndpointRuntimeReason reason) {
 		
 		super(cause.getMessage());		
 		
 		this.cause = cause;
 		
 		this.method = method;
+		
+		this.reason = reason;
 		
 	}
 
@@ -42,6 +47,10 @@ public class CheckoutHttpException extends Exception {
 	public String getMethod() {
 		return method;
 	}
+	
+	public EndpointRuntimeReason getReason() {
+		return reason;
+	}
 
 	public boolean isTestException() {
 		return testException;
@@ -49,7 +58,7 @@ public class CheckoutHttpException extends Exception {
 
 	public void setTestException(boolean testException) {
 		this.testException = testException;
-	}
+	}	
 
 	public boolean isExpired() {
 		return isExpired;

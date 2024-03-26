@@ -13,7 +13,11 @@
      
      <input name="RESTORE_FAILURE" />
      
-     <input name="mode" />         
+     <input name="mode" />    
+     
+   <on-start>
+       <evaluate expression="webflowDebug.assignMvcCart(cart, flowRequestContext, myFlowAttrs)" />
+   </on-start>       
     
    <action-state id="throwEmptyCart"  >
       

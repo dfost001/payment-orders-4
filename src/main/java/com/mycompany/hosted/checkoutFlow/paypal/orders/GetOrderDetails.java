@@ -8,6 +8,7 @@ import com.mycompany.hosted.checkoutFlow.MyFlowAttributes;
 import com.mycompany.hosted.checkoutFlow.WebFlowConstants;
 import com.mycompany.hosted.formatter.StringUtil;
 import com.mycompany.hosted.checkoutFlow.exceptions.CheckoutHttpException;
+import com.mycompany.hosted.checkoutFlow.exceptions.EndpointRuntimeReason;
 import com.mycompany.hosted.checkoutFlow.exceptions.PaymentSourceNullException;
 import com.mycompany.hosted.checkoutFlow.paypal.orders.PaymentDetails.GetDetailsStatus;
 import com.mycompany.hosted.checkoutFlow.paypal.rest.OrderId;
@@ -47,6 +48,8 @@ public class GetOrderDetails  {
 	 private Customer customer;
 	 
 	 private PaymentDetails paymentDetails;
+	 
+	 private EndpointRuntimeReason reason;
 	
 	@Autowired
 	private PayPalClient payClient;	
@@ -73,17 +76,25 @@ public class GetOrderDetails  {
 		    
 		       String err = debugPrintOrder(response);
 		    
-		       if(!err.isEmpty())
+		       if(!err.isEmpty()) {
+		    	   
+		    	this.reason = EndpointRuntimeReason.DETAILS_FIELDS_EMPTY;   
 		    	throw new IllegalArgumentException(err);
+		       }
 		    
 		       initOrderDetails(paymentDetails,response, ctx, customer); //throws test PaymentSourceNullException              
 		    
 		    } catch(IOException | IllegalArgumentException | PaymentSourceNullException ex) {
 		    	
-		       String payPalId = orderId == null ? null : orderId.getId(); 
+		        if(ex instanceof IOException)
+		        	this.reason = EndpointRuntimeReason.DETAILS_EXECUTE_IO;
 		    	
 		    	CheckoutHttpException httpEx = EhrLogger.initCheckoutException(ex,
-		    			"getOrder", response, payPalId, null);
+		    			"getOrder", response, this.reason);
+		    	
+		    	String payPalId = orderId == null ? null : orderId.getId(); 
+		    	
+		    	httpEx.setPayPalId(payPalId);
 		    	
 		    	ctx.getExternalContext()
 		    	   .getSessionMap()
@@ -131,7 +142,9 @@ public class GetOrderDetails  {
 	  Customer customer = (Customer)request.getExternalContext().getSessionMap()
 				 .get(WebFlowConstants.CUSTOMER_KEY);
 		 
-		 if(customer == null) {	 			
+		 if(customer == null) {	 	
+			 
+			 this.reason = EndpointRuntimeReason.DETAILS_NULL_CUSTOMER;
 			 
 			 EhrLogger.throwIllegalArg(this.getClass(),
 					 "initOrderDetails", "Customer is null in the session");
@@ -147,7 +160,7 @@ public class GetOrderDetails  {
 	   
 	    
 	    CheckoutHttpException ex = EhrLogger.initCheckoutException(new Exception("Testing Recoverable 503 Status"),
-				"getOrder", response, resourceId, null); 				
+				"getOrder", response, EndpointRuntimeReason.DETAILS_EXECUTE_IO); 				
 		
 	    
 	    ex.setTestException(true);
@@ -170,8 +183,11 @@ public class GetOrderDetails  {
 	 if (orderId == null || orderId.getId() == null || orderId.getId().isEmpty())
 			err += "Cannot find created orderId in the session or Id is not assigned. ";
 		
-	 if(!err.isEmpty())
-			EhrLogger.throwIllegalArg(this.getClass(), "getOrder", err);	
+	 if(!err.isEmpty()) {
+		 
+		 this.reason = EndpointRuntimeReason.DETAILS_NULL_SERVER_ID;
+		 EhrLogger.throwIllegalArg(this.getClass(), "getOrder", err);	
+	 }
 		
 	 return orderId;
 		
@@ -190,13 +206,15 @@ public class GetOrderDetails  {
 			}	
 			
 			if (err.isEmpty() && !orderId.getId().contentEquals(paramId)) {
-				System.out.println("GetDetails#evalOrderId: " + orderId.getId()
-				  + ": " + paramId);
+				
 				err += "JavaScript orderId is not equal to created orderId";
 			}
 			
-			if(!err.isEmpty())
+			if(!err.isEmpty()) {
+				
+				this.reason = EndpointRuntimeReason.DETAILS_COMPARE_SCRIPT_SERVER;
 				EhrLogger.throwIllegalArg(this.getClass(), "getOrder", err);
+			}
 	}
 	
 	/*
@@ -321,20 +339,28 @@ public class GetOrderDetails  {
 		PaymentSource source = order.paymentSource();
 		
 		if(source == null) {
-			System.out.println("GetOrderDetails#initPaymentSourceOrThrow: PaymentSource is null");
+			
+			EhrLogger.consolePrint(this.getClass(), "initPaymentSourceOrThrow", "PaymentSource is null");
+			
+			this.reason = EndpointRuntimeReason.DETAILS_NULL_CARD;
+			
 			throw new PaymentSourceNullException("GetOrderDetails#initPaymentSourceOrThrow: "
 					+ "PaymentSource is null");
 		}
 		if(source.card() == null) {
-			System.out.println("GetOrderDetails#initPaymentSourceOrThrow: source.card is null");
+			
+			EhrLogger.consolePrint(this.getClass(), "initPaymentSourceOrThrow", "PaymentSource.card is null");
+			
+			this.reason = EndpointRuntimeReason.DETAILS_NULL_CARD;
+			
 			throw new PaymentSourceNullException("GetOrderDetails#initPaymentSourceOrThrow: "
 					+ "PaymentSource.card is null");
 		}
 		
 		Card card = source.card();
 		
-		System.out.println("GetOrderDetails: "
-				+ "Card#lastDigits=" + card.lastDigits() + " expiry: " + card.expiry()
+		EhrLogger.consolePrint(this.getClass(),"initPaymentSourceOrThrow",
+				 "Card#lastDigits=" + card.lastDigits() + " expiry: " + card.expiry()
 				+ " brand=" + card.brand());
 		
 		AddressPortable address = card.addressPortable();
@@ -350,6 +376,7 @@ public class GetOrderDetails  {
 		
 		 if(this.testPaymentSourceNullException) {
 			 this.testPaymentSourceNullException = false;
+			 this.reason = EndpointRuntimeReason.DETAILS_NULL_CARD;
 			 throw new PaymentSourceNullException("GetOrderDetails#initPaymentSourceOrThrow: "
 						+ "Testing Exception: PaymentSource.card is null");
 		 }
@@ -400,10 +427,12 @@ public class GetOrderDetails  {
 				+ " " + sesAddress + " " + sesRegion + "-session");
 		
 		if(StringUtil.isNullOrEmpty(cardHolderName, streetAddress,
-				region,city, zip))
+				region,city, zip)) {
+			
+			this.reason = EndpointRuntimeReason.DETAILS_COMPARE_PARAMETERS;
 			EhrLogger.throwIllegalArg(GetOrderDetails.class, 
 					 "compareRequestParamstoSessionCustomer", "Missing request parameter(s)");
-		
+		}
 		String err = "";
 		
 		if(!cardHolderName.trim().contentEquals(sesName.trim()))
@@ -420,7 +449,9 @@ public class GetOrderDetails  {
 		if(!err.isEmpty()) {			
 		
 			err = "Credit Card Fields are not equal to Session for: " + err;
-		
+			
+			this.reason = EndpointRuntimeReason.DETAILS_COMPARE_PARAMETERS;
+			
 		    EhrLogger.throwIllegalArg(GetOrderDetails.class, 
 				"compareRequestParamsToSessionCustomer", err);
 		}

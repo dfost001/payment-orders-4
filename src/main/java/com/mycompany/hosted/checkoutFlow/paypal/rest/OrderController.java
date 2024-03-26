@@ -18,7 +18,7 @@ import com.mycompany.hosted.model.PostalAddress;
 import com.mycompany.hosted.checkoutFlow.WebFlowConstants;
 import com.mycompany.hosted.checkoutFlow.paypal.orders.CreateOrder2;
 import com.mycompany.hosted.checkoutFlow.exceptions.CheckoutHttpException;
-
+import com.mycompany.hosted.checkoutFlow.exceptions.EndpointRuntimeReason;
 import com.paypal.orders.Order;
 
 @RequestScope
@@ -30,6 +30,8 @@ public class OrderController {
 	
 	@Autowired
 	private Cart cart;
+	
+	private EndpointRuntimeReason reason;
 	
 	
 	@PostMapping(value = "/paypal/order/create", consumes = "application/json", produces = { "application/json" })
@@ -43,15 +45,15 @@ public class OrderController {
 
 		try {
 
-			if (cart == null || cart.getCount() == 0)
-
+			if (cart == null || cart.getCount() == 0) {
+                this.reason = EndpointRuntimeReason.CREATE_NULL_SESSION_ATTRS;
 				this.throwIllegalArgument("createOrder", Cart.class.getCanonicalName() + " is null or empty");
-
-			if (postal == null || customer == null)
-
+			}
+			if (postal == null || customer == null) {
+				this.reason = EndpointRuntimeReason.CREATE_NULL_SESSION_ATTRS;
 				this.throwIllegalArgument("createOrder",
 						"Customer or Selected_Postal_Address or both are null in the session");
-
+			}
 			Order order = createOrder.create(cart, customer); //PayPal fills in billing with shipping
 
 			String id = order.id();
@@ -60,11 +62,10 @@ public class OrderController {
 
 			session.setAttribute(WebFlowConstants.PAYPAL_SERVER_ID, orderId);
 
-		} catch (CheckoutHttpException ex) { //Thrown from CreateOrder2#create
-			throw ex;
-		} catch (Exception ex) {
-			throw EhrLogger.initCheckoutException(ex, "create", null, null, null); // null -> Response, Id, Persist-Id
-		}
+		} catch (IllegalArgumentException ex) { 
+			
+			throw EhrLogger.initCheckoutException(ex, "create", null, this.reason); // Response -> null
+		} 
 
 		return orderId;
 

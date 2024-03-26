@@ -64,7 +64,9 @@
            
            <p>Exception UUID: <span>${checkoutErrModel.uuid}</span></p>
            
-           <p>Cause: <span>${checkoutErrModel.cause}</span></p>  
+           <p>Cause: <span>${checkoutErrModel.cause}</span></p>
+           
+           <p>Reason (Error Code): <span>${checkoutErrModel.exception.reason}</span></p> 
            
            <p>PayPal Resource Id: <span>${checkoutErrModel.exception.payPalId}</span></p>
 		 

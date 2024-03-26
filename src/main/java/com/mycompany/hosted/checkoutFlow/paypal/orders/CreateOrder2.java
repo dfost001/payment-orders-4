@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import com.mycompany.hosted.cart.Cart;
 import com.mycompany.hosted.cart.CartItem;
 import com.mycompany.hosted.checkoutFlow.exceptions.CheckoutHttpException;
+import com.mycompany.hosted.checkoutFlow.exceptions.EndpointRuntimeReason;
 import com.mycompany.hosted.exception_handler.EhrLogger;
 import com.mycompany.hosted.mock.service.Book;
 import com.mycompany.hosted.model.PostalAddress;
@@ -51,6 +52,8 @@ public class CreateOrder2 {
 	@Autowired
 	private PayPalClient payClient;	
 	
+	private EndpointRuntimeReason reason;
+	
 	 /**
 	   *Method to create order
 	   *
@@ -82,14 +85,17 @@ public class CreateOrder2 {
 	      
 	      if(response == null || response.result() == null) {
 		    	
+	    	    this.reason = EndpointRuntimeReason.CREATE_RESPONSE_NULL;
 		    	this.throwIllegalArg("HttpResponse or Order is null");
 		    }	  
 	      
-	      if(response.result().id() == null)
+	      if(response.result().id() == null) {
+	    	  this.reason = EndpointRuntimeReason.CREATE_MISSING_ID;
 	    	  this.throwIllegalArg("PayPal Order result does not contain an Id");
-	      
+	      }
 	      if(this.testIdNotAssigned) {
 	    	  this.testIdNotAssigned = false;
+	    	  this.reason = EndpointRuntimeReason.CREATE_MISSING_ID;
 	    	  throw new IllegalArgumentException(
 	    			  "Testing CreateOrder: Response does not contain an Id");
 	      }
@@ -98,8 +104,9 @@ public class CreateOrder2 {
 	      
 	    } catch (IOException | IllegalArgumentException io)  {	    	    	
 	    	
-	    	/* payPalId=null, persistOrderId=null */    	
-	    	throw EhrLogger.initCheckoutException(io, "create", response, null, null); //ControllerAdvice
+	    	if(io instanceof IOException)
+	    		this.reason = EndpointRuntimeReason.CREATE_EXECUTE_IO;
+	    	throw EhrLogger.initCheckoutException(io, "create", response, reason); //ControllerAdvice
 	    	
 	    }	     
 	   	    
@@ -111,7 +118,7 @@ public class CreateOrder2 {
 	    this.testRecoverableException = false;
 		
 		CheckoutHttpException ex = EhrLogger.initCheckoutException(new Exception("Testing Recoverable 503 Status"),
-				"create", response, null, null); 				
+				"create", response, EndpointRuntimeReason.CREATE_EXECUTE_IO); 				
 		
 		ex.setTestException(true);
 		

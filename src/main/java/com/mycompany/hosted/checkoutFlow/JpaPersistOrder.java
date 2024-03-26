@@ -218,7 +218,7 @@ public class JpaPersistOrder {
 	
 	private Integer generateFailedId () {
 		
-		Long time = System.nanoTime();
+		Long time = System.currentTimeMillis();
 		
 		Integer hash = time.hashCode();
 		

@@ -56,7 +56,7 @@ public class PaymentStatusController {
 	public String showOrderStatus(@RequestParam("orderId") Integer orderId, 			         
 			HttpServletRequest request, ModelMap model)   {		
 		
-		System.out.println("PaymentStatusController is executing for order " + orderId);
+		EhrLogger.consolePrint(this.getClass(), "showOrderStatus","Executing for order " + orderId);
 		
 		this.session = request.getSession();
 		

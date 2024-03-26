@@ -6,7 +6,7 @@ import java.text.MessageFormat;
 
 import javax.servlet.http.HttpServletRequest;
 
-
+import org.picketbox.util.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,6 +17,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.mycompany.hosted.checkoutFlow.WebFlowConstants;
 import com.mycompany.hosted.checkoutFlow.exceptions.CheckoutHttpException;
+import com.mycompany.hosted.checkoutFlow.exceptions.EndpointRuntimeReason;
 import com.mycompany.hosted.checkoutFlow.exceptions.OrderNotRetrievableRefundException;
 import com.mycompany.hosted.checkoutFlow.exceptions.RefundIdException;
 
@@ -57,6 +58,8 @@ public class RefundController {
 	private boolean testPrintResponseOrThrow = true; //RefundIdException thrown before order updated
 	
 	private boolean testRefundIdException = false; //Thrown after order updated
+	
+	private EndpointRuntimeReason reason;
 
 	@Autowired
 	private PayPalClient payPalClient;
@@ -74,6 +77,8 @@ public class RefundController {
 					throws CheckoutHttpException {				
 			
 		this.httpRequest = request;
+		
+		this.reason = null;
 		
 		HttpResponse<Refund> response = null;	
 		
@@ -104,14 +109,18 @@ public class RefundController {
 		 
 		   refundId = debugPrintResponseOrThrow(response.result()); 		   
 		   
-		  /* if(evalStatus())
+		  /* if(evalStatus()) --To Do
 			   updateOrderAttrs(); --So Refund details can be shown on error view */
 		   
-		   OrderPayment updated = this.updateOrderStatus(orderPayment, response);	//Initalize from refund result  
+		   OrderPayment updated = this.updateOrderStatus(orderPayment, response);	
+		   
+		   EhrLogger.consolePrint(this.getClass(), "refund",
+					"Order#ServiceDetail#refundId: "
+				    + updated.getServiceDetail().getRefundId());
 		    
 		   redirectAttrs.addFlashAttribute(PaymentStatusController.ORDER, updated);
 		   
-		   this.doRefundIdException(); //Do here, so we can see REFUNDED_ONPERSIST_ERR
+		   this.doRefundIdException(); // Set to false to see duplicate, but do here to see REFUNDED_ONPERSIST_ERR
 		  	    
 		   return "redirect:" + REDIRECT_STATUS_URL + orderPayment.getOrderId();
 		
@@ -119,12 +128,19 @@ public class RefundController {
 		} catch (IOException | RuntimeException | RefundIdException 
 				| OrderNotRetrievableRefundException e) {
 			
+			if(e instanceof IOException)
+				this.reason = EndpointRuntimeReason.REFUND_EXECUTE_IOEXCEPTION;
+			
 			CheckoutHttpException checkoutEx = EhrLogger.initCheckoutException(e, 
-					"refund", response, payPalId, orderId);
+					"refund", response, reason);
 			
 			checkoutEx.setCapturedPaymentId(captureId);
 			
 			checkoutEx.setRefundId(refundId);
+			
+			checkoutEx.setPersistOrderId(orderId);
+			
+			checkoutEx.setPayPalId(payPalId);
 			
 			String id = ServletContextAttrs.setException(checkoutEx);
 			
@@ -157,16 +173,23 @@ public class RefundController {
 		
 		if(errDetail == null) {
 			
-			if(orderId < 0)
+			if(orderId < 0) {
+				
+				reason = EndpointRuntimeReason.REFUND_ERROR_DETAIL_NOT_FOUND;
+				
 				EhrLogger.throwIllegalArg(this.getClass(), "processOrder", 
 						"OrderId is negative and not found in the ErrorDetailBean. ");
+			}
 			
 			 return orderFromDb(orderId); // throws OrderNotRetrievable
 		}
 		
-		if(errDetail.getOrder() == null)
+		if(errDetail.getOrder() == null) {
+			
+			reason = EndpointRuntimeReason.REFUND_NULL_ORDER_IN_ERROR_DETAIL;
+			
 			EhrLogger.throwIllegalArg(this.getClass(), "processOrder", "ErrorDetail contains a null Order");
-		
+		}
 		EhrLogger.consolePrint(this.getClass(), "findOrder", "returning with errDetail.getOrder " +
                 errDetail.getOrder().getOrderId());
 		
@@ -193,7 +216,9 @@ public class RefundController {
 			
 			errorBean.addDetailToList(null, orderId, ex,
 					this.getClass().getCanonicalName() + "#orderFromDb", 
-					ErrorDetail.ErrorDetailReason.NOT_RETRIEVABLE_FOR_REFUND);			
+					ErrorDetail.ErrorDetailReason.NOT_RETRIEVABLE_FOR_REFUND);	
+			
+		    this.reason = EndpointRuntimeReason.REFUND_ORDER_NOT_RETRIEVABLE;
 			
 			throw new OrderNotRetrievableRefundException(ex, orderId);
 		}
@@ -202,13 +227,20 @@ public class RefundController {
 	
 	private boolean alreadyRefunded(OrderPayment order) {
 		
-		if(order.getServiceDetail().getRefundId() != null) {		
+		if(StringUtil.isNullOrEmpty(order.getServiceDetail().getRefundId())) {
 			
-			return true;
-					
-		}	
+			EhrLogger.consolePrint(this.getClass(), "alreadyRefunded",
+					"Order#ServiceDetail#refundId is NULL or empty for order "
+					+ order.getOrderId());
+			
+			return false;
+		}		
 		
-		return false;
+		EhrLogger.consolePrint(this.getClass(), "alreadyRefunded",
+				"Order#ServiceDetail#refundId is initialized for order "
+				+ order.getOrderId());
+		
+		return true;
 	}
 	
 	
@@ -230,6 +262,9 @@ public class RefundController {
 			errorBean.addDetailToList(order, order.getOrderId(), err,
 					this.getClass().getCanonicalName() + 
 					"#updateOrderStatus", ErrorDetail.ErrorDetailReason.REFUNDED_ONPERSIST_ERR);
+			
+			EhrLogger.consolePrint(this.getClass(), "updateOrderStatus", 
+					"REFUNDED_ONPERSIST_ERR added to errorBean. " );
 			
 			return order;
 		}
@@ -295,8 +330,11 @@ public class RefundController {
 		
 		System.out.println(debug);
 		
-		if(refund.id() == null)
+		if(refund.id() == null) {
+			
+		   this.reason = EndpointRuntimeReason.REFUND_ID_MISSING;	
 		   throw new RefundIdException();
+		}
 		
 		if(testPrintResponseOrThrow) {
 			testPrintResponseOrThrow = false;
@@ -313,6 +351,7 @@ public class RefundController {
 		
 		if(this.testRefundIdException) {
 		    testRefundIdException = false;
+		    this.reason = EndpointRuntimeReason.REFUND_ID_MISSING;
 		    throw new RefundIdException(EhrLogger.doMessage(
 		    this.getClass(), 
 		    "doRefundIdException", "Testing: Likey refunded, but Refund Id is not assigned."));
