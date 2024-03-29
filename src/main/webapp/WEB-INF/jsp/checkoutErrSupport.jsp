@@ -84,7 +84,8 @@
            
            <p>Captured Transaction Id: ${checkoutErrModel.exception.capturedPaymentId} </p>
            
-           <p>Messages: ${checkoutErrModel.messageTrace}</p>
+           <p><b>Message Trace:</b> <br/>
+              <c:out value="${checkoutErrModel.messageTrace}" escapeXml="false" /></p>
            
         </blockquote>     
          

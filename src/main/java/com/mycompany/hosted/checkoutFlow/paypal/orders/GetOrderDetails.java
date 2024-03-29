@@ -18,6 +18,7 @@ import com.mycompany.hosted.model.Customer;
 //import com.paypal.http.Headers;
 //import com.mycompany.hosted.model.order.PaymentStatusEnum;
 import com.paypal.http.HttpResponse;
+import com.paypal.http.exceptions.HttpException;
 import com.paypal.http.exceptions.SerializeException;
 import com.paypal.http.serializer.Json;
 import com.paypal.orders.AddressPortable;
@@ -86,8 +87,10 @@ public class GetOrderDetails  {
 		    
 		    } catch(IOException | IllegalArgumentException | PaymentSourceNullException ex) {
 		    	
-		        if(ex instanceof IOException)
-		        	this.reason = EndpointRuntimeReason.DETAILS_EXECUTE_IO;
+		    	if(ex instanceof HttpException)
+		    		this.reason = EndpointRuntimeReason.DETAILS_FAILED_HTTP_STATUS;
+		    	else if(ex instanceof IOException)
+		    		this.reason = EndpointRuntimeReason.DETAILS_EXECUTE_IO;
 		    	
 		    	CheckoutHttpException httpEx = EhrLogger.initCheckoutException(ex,
 		    			"getOrder", response, this.reason);
@@ -160,7 +163,7 @@ public class GetOrderDetails  {
 	   
 	    
 	    CheckoutHttpException ex = EhrLogger.initCheckoutException(new Exception("Testing Recoverable 503 Status"),
-				"getOrder", response, EndpointRuntimeReason.DETAILS_EXECUTE_IO); 				
+				"getOrder", response, EndpointRuntimeReason.DETAILS_FAILED_HTTP_STATUS); 				
 		
 	    
 	    ex.setTestException(true);

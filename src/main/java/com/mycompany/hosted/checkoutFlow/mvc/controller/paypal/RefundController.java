@@ -38,6 +38,7 @@ import com.mycompany.hosted.model.order.OrderPayment;
 import com.mycompany.hosted.model.order.ServiceDetail;
 //import com.mycompany.hosted.model.order.OrderShipTo;
 import com.paypal.http.HttpResponse;
+import com.paypal.http.exceptions.HttpException;
 import com.paypal.payments.CapturesRefundRequest;
 import com.paypal.payments.Refund;
 import com.paypal.payments.RefundRequest;
@@ -128,7 +129,9 @@ public class RefundController {
 		} catch (IOException | RuntimeException | RefundIdException 
 				| OrderNotRetrievableRefundException e) {
 			
-			if(e instanceof IOException)
+			if(e instanceof HttpException)
+				this.reason = EndpointRuntimeReason.REFUND_FAILED_HTTP_STATUS ;
+			else if(e instanceof IOException)
 				this.reason = EndpointRuntimeReason.REFUND_EXECUTE_IOEXCEPTION;
 			
 			CheckoutHttpException checkoutEx = EhrLogger.initCheckoutException(e, 

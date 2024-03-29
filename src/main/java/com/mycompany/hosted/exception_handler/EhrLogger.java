@@ -74,7 +74,7 @@ public class EhrLogger {
 	        
 	        while(t != null) {
 	           
-	            String line = MessageFormat.format("{0} -> {1}", 
+	            String line = MessageFormat.format("<b>{0} -></b> {1}", 
 	                    t.getClass().getSimpleName(), t.getMessage());
 	            
 	            msg += line + delim;

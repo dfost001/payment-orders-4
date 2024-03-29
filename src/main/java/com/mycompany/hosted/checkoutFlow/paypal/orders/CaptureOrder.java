@@ -34,6 +34,7 @@ import com.mycompany.hosted.checkoutFlow.paypal.orders.PaymentDetails.GetDetails
 import com.mycompany.hosted.exception_handler.EhrLogger;
 //import com.paypal.orders.Payer;
 import com.paypal.http.HttpResponse;
+import com.paypal.http.exceptions.HttpException;
 
 
 /*
@@ -105,7 +106,11 @@ public class CaptureOrder {
 	    
 		} catch(IOException | RuntimeException | ProcessorResponseNullException e) {			
 			
-			//persistOrderId = null
+			if(e instanceof HttpException)
+	    		this.reason = EndpointRuntimeReason.CAPTURE_FAILED_HTTP_STATUS;
+	    	else if(e instanceof IOException)
+	    		this.reason = EndpointRuntimeReason.CAPTURE_EXECUTE_IO;
+			
 			CheckoutHttpException httpEx = EhrLogger.initCheckoutException(e,
 					"capture", response, reason);
 			
@@ -132,7 +137,7 @@ public class CaptureOrder {
 		    testRecoverableException = false; 				  
 		    
 		    CheckoutHttpException ex = EhrLogger.initCheckoutException(new Exception("Testing Recoverable 503 Status"),
-					"capture", response, EndpointRuntimeReason.CAPTURE_EXECUTE_IO); 			
+					"capture", response, EndpointRuntimeReason.CAPTURE_FAILED_HTTP_STATUS); 			
 		    
 		    ex.setTestException(true);
 		    

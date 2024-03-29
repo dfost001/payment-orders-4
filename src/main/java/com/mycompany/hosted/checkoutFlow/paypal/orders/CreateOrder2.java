@@ -24,13 +24,12 @@ import com.paypal.orders.Item;
 import com.paypal.orders.LinkDescription;
 import com.paypal.orders.Money;
 import com.paypal.orders.Name;
-//import com.paypal.orders.Name;
 import com.paypal.orders.Order;
 import com.paypal.orders.OrderRequest;
 import com.paypal.orders.OrdersCreateRequest;
 import com.paypal.orders.PurchaseUnitRequest;
 import com.paypal.orders.ShippingDetail;
-//import com.paypal.orders.ShippingDetail;
+import com.paypal.http.exceptions.HttpException;
 
 @Component
 public class CreateOrder2 {
@@ -103,8 +102,9 @@ public class CreateOrder2 {
 	      debugPrint(response);
 	      
 	    } catch (IOException | IllegalArgumentException io)  {	    	    	
-	    	
-	    	if(io instanceof IOException)
+	    	if(io instanceof HttpException)
+	    		this.reason = EndpointRuntimeReason.CREATE_FAILED_HTTP_STATUS;
+	    	else if(io instanceof IOException)
 	    		this.reason = EndpointRuntimeReason.CREATE_EXECUTE_IO;
 	    	throw EhrLogger.initCheckoutException(io, "create", response, reason); //ControllerAdvice
 	    	
@@ -118,7 +118,7 @@ public class CreateOrder2 {
 	    this.testRecoverableException = false;
 		
 		CheckoutHttpException ex = EhrLogger.initCheckoutException(new Exception("Testing Recoverable 503 Status"),
-				"create", response, EndpointRuntimeReason.CREATE_EXECUTE_IO); 				
+				"create", response, EndpointRuntimeReason.CREATE_FAILED_HTTP_STATUS); 				
 		
 		ex.setTestException(true);
 		
