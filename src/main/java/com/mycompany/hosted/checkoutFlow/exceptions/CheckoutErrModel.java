@@ -1,5 +1,7 @@
 package com.mycompany.hosted.checkoutFlow.exceptions;
 
+import com.mycompany.hosted.checkoutFlow.paypal.orders.PayPalErrorResponse;
+
 public class CheckoutErrModel {
 	
 	private CheckoutHttpException exception;
@@ -13,6 +15,7 @@ public class CheckoutErrModel {
 	private String friendly;
 	private String retUrl;
 	private String cause;
+	private PayPalErrorResponse payPalError;
 	
 	
 	
@@ -82,6 +85,12 @@ public class CheckoutErrModel {
 	}
 	public void setCause(String cause) {
 		this.cause = cause;
+	}
+	public PayPalErrorResponse getPayPalError() {
+		return payPalError;
+	}
+	public void setPayPalError(PayPalErrorResponse payPalError) {
+		this.payPalError = payPalError;
 	}
 	
 	

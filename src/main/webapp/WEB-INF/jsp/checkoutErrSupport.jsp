@@ -60,7 +60,25 @@
                
           <blockquote style="font-size:10pt; display:none" id="errContent">
           
-           <p>Message: <span><c:out value="${checkoutErrModel.message}" escapeXml="false" /></span></p>  
+          <c:choose>
+            <c:when test = "${empty checkoutErrModel.payPalError}">
+              <p>Message: <span><c:out value="${checkoutErrModel.message}" escapeXml="false" />
+                          </span></p>  
+            </c:when>
+            <c:otherwise>
+               <p>Name: <span>${checkoutErrModel.payPalError.name}</span></p>
+               <p>Message: <span>${checkoutErrModel.payPalError.message}</span></p>
+               <p>Details:</p>
+               <c:forEach var="err" items="${checkoutErrModel.payPalError.details}">
+                 <blockquote>
+                     <p>Field: <span>${err.field}</span></p>
+                     <p>Issue: <span>${err.issue}</span></p>
+                     <p>Value: <span>${err.value}</span></p>                     
+                     <p>Description: <span>${err.description}</span></p>
+                 </blockquote>
+               </c:forEach>
+            </c:otherwise>
+          </c:choose>          
            
            <p>Exception UUID: <span>${checkoutErrModel.uuid}</span></p>
            

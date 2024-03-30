@@ -130,9 +130,11 @@ public class PaymentExceptionController {
 				
 				err.setResponseCode(503);
 			
-			else err.setResponseCode(ex.getResponseStatus());  
+			else err.setResponseCode(ex.getResponseStatus());  			
 			
-			setRecoverable(err,cause, err.getResponseCode()) ;
+			setRecoverable(err,cause, err.getResponseCode()) ;			
+			
+			err.setPayPalError(this.initError(cause, ex.getResponseStatus()));
 			
 			if(err.getErrMethod().contains("refund"))
 		        	err.setRecoverable(false); // Currently, a link back to PaymentStatusController is not configured
@@ -147,6 +149,18 @@ public class PaymentExceptionController {
 	        
 	       
 	   }
+		
+	private PayPalErrorResponse initError(Throwable cause, int status) {
+		
+		if(!HttpException.class.isAssignableFrom(cause.getClass()))			
+			return null;
+		
+		if(status >= 400 && status < 500 )
+			return this.deserializeError(cause);
+		
+		return null;
+		
+	}
 		
 	private void initContentType(CheckoutErrModel err,  Throwable cause)	{
 		
@@ -222,7 +236,7 @@ public class PaymentExceptionController {
 			
 			if(model.getResponseCode().equals(422)) {
 				
-				refunded = deserializeError(model.getException().getCause());
+				refunded = isRefundError(model.getException().getCause());
 				
 				if(refunded)
 				  friendly = "Your refund has already been issued. This is a duplicate request. ";
@@ -232,10 +246,31 @@ public class PaymentExceptionController {
 		model.setFriendly(label + friendly);
 	}
 	
-	private boolean deserializeError(Throwable ex) {
+	private boolean isRefundError(Throwable ex) {
 		
 		if(!HttpException.class.isAssignableFrom(ex.getClass()))
 			return false;
+		
+		PayPalErrorResponse err = deserializeError(ex);
+		
+		if(err == null)
+			return false;
+		
+        List<PayPalErrorDetail> details = err.getDetails();
+		
+		if(details == null || details.isEmpty()) {
+			
+			return false;	
+		} 
+		
+		if(details.get(0).getIssue().contentEquals(FULLY_REFUNDED))
+		     return true;
+		
+		return false;
+	}
+	
+	private PayPalErrorResponse deserializeError(Throwable ex) {		
+		
 		
 		ObjectMapper mapper = new ObjectMapper();
 		
@@ -248,26 +283,15 @@ public class PaymentExceptionController {
 		try {
 			 err = mapper.readValue(ex.getMessage(), 
 					PayPalErrorResponse.class);
-		} catch (IOException e) {
+		} catch (IOException e) {			
 			
-			System.out.println("ExceptionController#deserializeError: IOException: " + e.getMessage());
+			EhrLogger.throwIllegalArg(this.getClass(), 
+					"deserializeError", "Json error", e);
 			
-			return false;
 		}
-		List<PayPalErrorDetail> details = err.getDetails();
-		
-		if(details == null || details.isEmpty()) {
-			System.out.println("PaymentExceptionController#deserializeError: details are null: returning false");
-			return false;	
-		} else {
-			System.out.println("PaymentExceptionController#deserializeError: details are NOT null");
-			System.out.println("Issue: " + details.get(0).getIssue() );
-		}	
-		
-		if(details.get(0).getIssue().contentEquals(FULLY_REFUNDED))
-		     return true;
-		
-		return false;
+		if(err.getName() == null)
+			return null;
+		return err;
 	}
 	 /*
 	  * Note: If error occurs at getDetails there will be no PAYMENT_DETAILS to remove	

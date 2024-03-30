@@ -20,11 +20,11 @@ public class PayPalErrorResponse {
         this.debugId = debugId;
     }
 
-   /* public String getInformationLink() {
+  /*  public String getInformationLink() {
         return informationLink;
-    }*/
+    }
 
-   /* public void setInformationLink(String informationLink) {
+    public void setInformationLink(String informationLink) {
     	this.informationLink = informationLink;
     }  */
 
