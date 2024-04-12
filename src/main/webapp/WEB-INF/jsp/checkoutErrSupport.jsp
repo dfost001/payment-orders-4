@@ -18,16 +18,17 @@
 	
 	<style>
 	  li {padding:3px}
+	 
 	</style>
 	
 </head>
   
 <body>
-  <div class="container" style="padding-bottom:50px">
+  <div class="container-fluid" style="padding-bottom:50px">
   
   <jsp:include page="includes/header.jsp"></jsp:include>
   
-  <div style="width:750px;margin:auto">
+  <div style="width:1000px;margin:auto">
   
   <h2 style="color:#036fab">Payment Error Support</h2><br/>
   
@@ -43,22 +44,29 @@
     </ul>
   </div>
   
-     <div style="width:700px">
-      <div style="width:250px;float:left">
+     <div style="width:950px">
+      <div style="width:475px;float:left">
       
          <jsp:include page="../flows/checkout/includes/shippingAddress.jsp" />
          <jsp:include page="../flows/checkout/includes/billingAddress.jsp" />
+          <c:if test="${not empty errorDetailMap}">
+              <a href="#" id="supportDebug" style="font-weight:bold;">
+               Error Detail <span class="glyphicon glyphicon-collapse-down"></span></a>
+             <div style="display:none">  
+		        <jsp:include page="includes/errorDetailMap.jsp" />
+		     </div>   
+		   </c:if>
        
       </div><!-- end address container -->
       
-      <div style="width:420px;float:left;padding:30px">
+      <div style="width:475px;float:left;padding:30px">
       
          <jsp:include page="../flows/checkout/includes/cartItems.jsp" /> <br/>
          
            <a href="#" id="support" style="font-weight:bold;">
                Support <span class="glyphicon glyphicon-collapse-down"></span></a>
                
-          <blockquote style="font-size:10pt; display:none" id="errContent">
+          <blockquote style="font-size:11pt; display:none" id="errContent">
           
           <c:choose>
             <c:when test = "${empty checkoutErrModel.payPalError}">
@@ -70,7 +78,7 @@
                <p>Message: <span>${checkoutErrModel.payPalError.message}</span></p>
                <p>Details:</p>
                <c:forEach var="err" items="${checkoutErrModel.payPalError.details}">
-                 <blockquote>
+                 <blockquote style="font-size: 10pt">
                      <p>Field: <span>${err.field}</span></p>
                      <p>Issue: <span>${err.issue}</span></p>
                      <p>Value: <span>${err.value}</span></p>                     
@@ -118,7 +126,13 @@
         	   $(this).next().slideToggle();
         	   
            });
-        
+           $("#supportDebug").click(function(ev){
+        	   
+        	   ev.preventDefault();
+        	   
+        	   $(this).next().slideToggle();
+        	   
+           });
         </script>
 	</div>   
  </div><!-- end container -->

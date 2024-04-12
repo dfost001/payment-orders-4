@@ -276,10 +276,20 @@
 		 <blockquote style="font-size:9pt; display:none">
 		   
 		   
-		   <c:if test="${not empty errorDetailMap}">
-		     <div style="width:400px">
-		         <jsp:include page="includes/errorDetailMap.jsp" />
-		     </div>
+		   <c:if test="${not empty errorDetailBean.errorDetailList}">
+		      <h5>Order Error Details</h5>
+		      <c:forEach var="err" items="${errorDetailBean.errorDetailList}">
+		         <div class="divErrDetail">
+		         <label>ErrorDetailReason:</label> ${err.errorDetailReason} <br/>
+		         <label>Order #:</label>${err.localOrderId} <br/>
+		         <label>Customer: </label>${err.order.customerId.id} <br/>
+		         <label>Message:</label>${err.errMessage} <br/>
+		         <label>Method:</label>${err.errMethod} <br/>
+		         <label>Exception:</label>${err.exceptionClass} <br/>
+		         <label>Service Id:</label>${order.serviceDetail.serviceId}
+		         <label>Time:</label>${err.errTime} <br/>
+		         </div>
+		      </c:forEach>
 		   </c:if>
 		     
 		   Capture Details: <br/>

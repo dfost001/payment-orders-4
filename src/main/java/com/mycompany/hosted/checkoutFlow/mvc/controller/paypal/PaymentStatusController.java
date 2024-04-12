@@ -66,10 +66,16 @@ public class PaymentStatusController {
 		
 		model.addAttribute(ORDER, order);
 		
-		model.addAttribute(WebFlowConstants.CART, cart);	
+		model.addAttribute(WebFlowConstants.CART, cart);			
 		
-		model.addAttribute(WebFlowConstants.ERROR_DETAIL_BEAN, 
-				WebFlowConstants.errorBeanFromServletContext(request));	
+		/*model.addAttribute(WebFlowConstants.ERROR_DETAIL_MAP, 
+				WebFlowConstants.errorBeanFromServletContext(request)
+				.findDetailList(orderId));	*/
+		
+		model.addAttribute(WebFlowConstants.ERROR_DETAIL_MAP, 
+				WebFlowConstants.errorBeanFromServletContext(request)
+				.getErrMap());	
+		
 		/*
 		 * Path Variables for Refund URL
 		 */
@@ -90,7 +96,7 @@ public class PaymentStatusController {
     * compare date coded on error orderId and servletContext attribute.
     */
    private OrderPayment processOrder(Integer orderId,
-		   ModelMap map,
+		   ModelMap model,
 		   HttpServletRequest request)  {	   
 	   
 	   OrderPayment order;	   
@@ -106,7 +112,7 @@ public class PaymentStatusController {
 		   return order;
 	   }
 	   
-	   order = (OrderPayment) map.get(ORDER); //FlashAttribute added on RefundController
+	   order = (OrderPayment) model.get(ORDER); //FlashAttribute added on RefundController
 	   
 	   if(order != null) {
 		   
@@ -118,7 +124,7 @@ public class PaymentStatusController {
 	    
 	   ErrorDetailBean errorBean = WebFlowConstants.errorBeanFromServletContext(request);
 		
-	   ErrorDetail errDetail = errorBean.findDetail(orderId);
+	   ErrorDetail errDetail = errorBean.findMostRecentDetail(orderId);
 		
 		if(errDetail != null) {
 			

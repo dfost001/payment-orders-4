@@ -38,6 +38,8 @@ public class WebFlowConstants {
 	
 	public static final String ERROR_DETAIL_BEAN = "errorDetailBean";
 	
+	public static final String ERROR_DETAIL_MAP = "errorDetailMap";
+	
 	public static final String ERR_GET_DETAIL = "ERR_GET_DETAIL";
 	
 	public static final String ERR_ON_CAPTURE = "ERR_ON_CAPTURE";

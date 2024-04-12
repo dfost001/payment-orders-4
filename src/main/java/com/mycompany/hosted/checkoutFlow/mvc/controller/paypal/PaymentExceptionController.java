@@ -23,6 +23,7 @@ import com.mycompany.hosted.checkoutFlow.exceptions.CheckoutHttpException;
 import com.mycompany.hosted.checkoutFlow.paypal.orders.PayPalErrorDetail;
 import com.mycompany.hosted.checkoutFlow.paypal.orders.PayPalErrorResponse;
 import com.mycompany.hosted.checkoutFlow.servlet_context.ServletContextAttrs;
+import com.mycompany.hosted.errordetail.ErrorDetailBean;
 import com.mycompany.hosted.checkoutFlow.servlet_context.OrderAttributes;
 import com.mycompany.hosted.exception_handler.EhrLogger;
 import com.mycompany.hosted.exception_handler.MvcNavigationException;
@@ -42,7 +43,7 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 public class PaymentExceptionController {	  
 	
 	  @Autowired
-	  private ServletContextAttrs servletContextAttrs;
+	  private ServletContextAttrs servletContextAttrs;	  
 	
 	  public static final String ERR_GET_DETAIL = "ERR_GET_DETAIL";	
 	  
@@ -86,6 +87,8 @@ public class PaymentExceptionController {
 			
 			model.addAttribute("checkoutErrModel", errModel);
 			
+			this.addErrorDetailAttribute(model, request);
+			
 			if(errModel.getErrMethod().contentEquals(REFUND))
 				this.prepareModelOrderAttributes(model, ex.getPersistOrderId());
 			
@@ -105,6 +108,10 @@ public class PaymentExceptionController {
 			throw new MvcNavigationException(err);
 			
 		}
+		
+		/*
+		 * To do: Correlate EndpointRuntimeReason enum to a friendly message.
+		 */
 		
 		private CheckoutErrModel initErrorModel(CheckoutHttpException ex, String id) {
 			
@@ -342,6 +349,14 @@ public class PaymentExceptionController {
 	    	model.addAttribute("customer", orderAttrs.getBillTo());
 	    	
 	    	model.addAttribute("cart", orderAttrs.getCartAttrs());
+	    }
+	    
+	    private void addErrorDetailAttribute(ModelMap model, HttpServletRequest request) {
+	    	
+	    	ErrorDetailBean detailBean = WebFlowConstants.errorBeanFromServletContext(request);
+	    	
+	    	model.addAttribute("errorDetailMap", detailBean.getErrMap());
+	    	
 	    }
 
 

@@ -50,7 +50,7 @@ public class CaptureOrder {
 	boolean testRecoverableException = false;
 	//boolean testCaptureId = false;
 	boolean testProcessorResponse = false; //see debugPrintProcessorOrThrow
-	boolean testFailedCvv = true; //see isFailedProcessorCode
+	boolean testFailedCvv = false; //see isFailedProcessorCode
 	
 	private String capturedPaymentId;
 	

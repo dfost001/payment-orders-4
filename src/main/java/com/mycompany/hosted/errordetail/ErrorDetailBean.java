@@ -1,150 +1,160 @@
 package com.mycompany.hosted.errordetail;
 
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-
+import java.util.Arrays;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 //import java.util.Optional;
+import java.util.Map;
 
 import com.mycompany.hosted.errordetail.ErrorDetail.ErrorDetailReason;
 import com.mycompany.hosted.exception_handler.EhrLogger;
+//import com.mycompany.hosted.exception_handler.EhrLogger;
 import com.mycompany.hosted.model.order.OrderPayment;
 
 
-public class ErrorDetailBean {
+public class ErrorDetailBean {	
 	
-	private List<ErrorDetail> errorDetailList = new ArrayList<>();	
+	private Map<Integer, List<ErrorDetail>> errMap= new LinkedHashMap<>();	
 	
-	
-	public List<ErrorDetail> getErrorDetailList() {
-		return errorDetailList;
+	public Map<Integer, List<ErrorDetail>> getErrMap() {
+		return errMap;
 	}
-
-	public ErrorDetail addDetailToList(OrderPayment order, Integer localOrderId,
-			Exception ex, String errMethod, ErrorDetailReason reason) {
-			
+	/*
+	 * To do: Initialize Capture, Resource Ids from the order
+	 */
+	public void addDetailToList(OrderPayment order, Integer localOrderId,
+			Exception ex, String errMethod, ErrorDetailReason reason) {	
 		
-		ErrorDetail detail = new ErrorDetail();
-		
-		detail.setErrorDetailReason(reason);
-		
-		detail.setLocalOrderId(localOrderId);
-		
-		detail.setException(ex);
+		ErrorDetail detail = initErrorDetail(order, localOrderId, errMethod, reason);
+	
+        detail.setException(ex);
 		
 		detail.setExceptionClass(ex.getClass());		
 				
 		detail.setErrMessage(ex.getMessage());
 		
-		initDetail(detail, errMethod, order);
+		detail.setErrMessage(ex.getMessage());		
 		
-		errorDetailList.add(detail);
+        List<ErrorDetail> list = new ArrayList<>();
 		
-		return detail;
-		
+		if(errMap.containsKey(localOrderId))
+			errMap.get(localOrderId).add(detail);
+		else {
+			list.add(detail);
+			errMap.put(localOrderId, list);
+		}			
 	}
+	
 	/*
 	 * See REFUNDED_ONPERSIST_ERR
 	 */
-	public ErrorDetail addDetailToList( 
+	public void addDetailToList( 
 			OrderPayment order, Integer localOrderId,
-			String errMsg, String errMethod, ErrorDetailReason reason) {
+			String errMessage, String errMethod, ErrorDetailReason reason) {
+		
+		ErrorDetail detail = initErrorDetail(order,localOrderId,errMethod, reason);
+		
+		detail.setErrMessage(errMessage);
+		
+        List<ErrorDetail> list = new ArrayList<>();
+		
+		if(errMap.containsKey(localOrderId))
+			errMap.get(localOrderId).add(detail);
+		else {
+			list.add(detail);
+			errMap.put(localOrderId, list);
+		}			
+		
+		
+	}
+	
+	private ErrorDetail initErrorDetail(
+			OrderPayment order, Integer localOrderId,
+			String errMethod, ErrorDetailReason reason) {    
 		
 		ErrorDetail detail = new ErrorDetail();
 		
 		detail.setErrorDetailReason(reason);
 		
-		detail.setErrMessage(errMsg);
+		detail.setLocalOrderId(localOrderId);	
 		
-		detail.setLocalOrderId(localOrderId);
-		
-		this.initDetail(detail, errMethod, order);
-		
-		errorDetailList.add(detail);
+		detail.setErrMethod(errMethod);
+			
+		detail.setOrder(order);
+			
+		if(order != null)
+				detail.setSvcTransactionId(order.getCaptureId());		
+			
+		detail.setErrTime(this.formatZoned());
 		
 		return detail;
 		
 	}
 	
-
+	String formatZoned() {
+        ZonedDateTime zdt = ZonedDateTime.now();
+		
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy h:mm:ss a (z)");	
+		
+		return formatter.format(zdt);
+	}
+/*
+ * To do: Possibly by caller. If REFUND_ID_MISSING, NOT_RETRIEVABLE succeeds.
+ */
 	
-   public ErrorDetail findDetail(Integer orderId) {	  	   
-	  
-	  /* EhrLogger.consolePrint(this.getClass(), "findDetail", "param=" + orderId);*/
-		
-		for(int i=0; i< this.errorDetailList.size(); i++) {
-			
-		
-			ErrorDetail tdetail = errorDetailList.get(i);			
-						
-			if(!tdetail.getLocalOrderId().equals(orderId)) continue;
-				
-				switch (tdetail.getErrorDetailReason()) {
+   public ErrorDetail findMostRecentDetail(Integer orderId) {	  	 	 
+	   
+	   List<ErrorDetail> list = this.errMap.get(orderId);
+	   
+	   if(list == null) return null;
+	   
+	   ErrorDetail detail = list.get(list.size() - 1); //Most recent
+	   				
+	   switch (detail.getErrorDetailReason()) {
 				
 				case NOT_RETRIEVABLE_FOR_REFUND:
-					return null;
+					detail = null;
 				
-				case PERSIST_ORDER_ERR:
-					
-                    ErrorDetail redetail = null;						
-					
-					if( (redetail = refunded(orderId, i)) != null )
-						return redetail;
-					else return tdetail;	
-				
+				case PERSIST_ORDER_ERR:				
 					
 				case REFUND_UPDATE_ERR:	
-					return tdetail;	
-					
+									
 				case REFUNDED_ONPERSIST_ERR:
-					//Should not be reached	: handled by PERSIST_ORDER_ERR	
-					EhrLogger.throwIllegalArg(this.getClass(), "findDetail", 
-							"REFUNDED_ONPERSIST_ERR switch condition should not be reached");
-				      
-			} //end switch
-		} //end for
+					
+				case REFUND_ID_MISSING:	
+		      
+			} //end switch		
 		
-		EhrLogger.consolePrint(this.getClass(), "findDetail", "Not found for " + orderId);		
-		
-		return null;
+		return detail;
 	}
    
-   private ErrorDetail refunded(int id, int current) {
+   public Map<Integer, List<ErrorDetail>> findDetailList(Integer...orderId) {
 	   
-	   if(current + 1== errorDetailList.size())
-		   return null;
+	   if(orderId == null)
+		   EhrLogger.throwIllegalArg(this.getClass(), "findDetailList",
+				   "Param 'orderId' cannot be null");
 	   
-	   for(int i=current + 1; i< this.errorDetailList.size(); i++) {
-		   
-		   ErrorDetail err = errorDetailList.get(i);
-		   
-		   if(err.getOrder() == null)
-			   continue;
-		   
-		   if(err.getOrder().getOrderId() == id && 
-				   err.getErrorDetailReason().equals(ErrorDetailReason.REFUNDED_ONPERSIST_ERR))
-			   
-			   return err;		   
-		   
-	   }
+	   List<Integer> toFind = Arrays.asList(orderId);
 	   
-	   return null;
+	   Map<Integer, List<ErrorDetail>> foundMap = new HashMap<>();
 	   
-   }
-	
-	private void initDetail(ErrorDetail detail, String method,
-			OrderPayment order) {
-		
-        detail.setErrMethod(method);
-		
-		detail.setOrder(order);
-		
-		if(order != null)
-			detail.setSvcTransactionId(order.getCaptureId());		
-		
-		detail.setErrTime(new GregorianCalendar().toString());
-		
-	}
-	
-
-}
+	  for (Integer id : toFind) {
+		  
+		  List<ErrorDetail> foundList = this.errMap.get(id);
+		  
+		  if(foundList == null)
+			  EhrLogger.throwIllegalArg(this.getClass(), "findDetailList",
+					   "List<ErrorDetail> cannot be found by orderId " + id);
+		  
+		  foundMap.put(id,foundList);
+		  
+	  }
+	  return foundMap; 
+   }//end find
+   
+} //end class

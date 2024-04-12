@@ -113,11 +113,7 @@ public class RefundController {
 		  /* if(evalStatus()) --To Do
 			   updateOrderAttrs(); --So Refund details can be shown on error view */
 		   
-		   OrderPayment updated = this.updateOrderStatus(orderPayment, response);	
-		   
-		   EhrLogger.consolePrint(this.getClass(), "refund",
-					"Order#ServiceDetail#refundId: "
-				    + updated.getServiceDetail().getRefundId());
+		   OrderPayment updated = this.updateOrderStatus(orderPayment, response);			   
 		    
 		   redirectAttrs.addFlashAttribute(PaymentStatusController.ORDER, updated);
 		   
@@ -172,7 +168,7 @@ public class RefundController {
 		/*EhrLogger.consolePrint(this.getClass(), "processOrder", "getErrorsFromSession: size=" +
                         errorBean.getErrorDetailList().size()); */
 		
-		ErrorDetail errDetail = errorBean.findDetail(orderId);		
+		ErrorDetail errDetail = errorBean.findMostRecentDetail(orderId);		
 		
 		if(errDetail == null) {
 			
@@ -333,17 +329,26 @@ public class RefundController {
 		
 		System.out.println(debug);
 		
+		
+		
 		if(refund.id() == null) {
 			
 		   this.reason = EndpointRuntimeReason.REFUND_ID_MISSING;	
-		   throw new RefundIdException();
-		}
+		   throw new RefundIdException(
+				   
+				   EhrLogger.doMessage(
+					this.getClass(), 
+					"debugPrintResponseOrThrow", 
+					"Likey refunded, but Refund Id is not assigned."));					 
+		   }
 		
 		if(testPrintResponseOrThrow) {
 			testPrintResponseOrThrow = false;
+			this.reason = EndpointRuntimeReason.REFUND_ID_MISSING;	
 			throw new RefundIdException(EhrLogger.doMessage(
 			this.getClass(), 
-			"debugPrintResponseOrThrow", "Testing: Likey refunded, but Refund Id is not assigned."));
+			"debugPrintResponseOrThrow", 
+			"Testing: Likey refunded, but Refund Id is not assigned."));
 		}
 		
 		return refund.id();
