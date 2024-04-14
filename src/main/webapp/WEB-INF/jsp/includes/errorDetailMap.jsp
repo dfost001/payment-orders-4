@@ -5,10 +5,10 @@
    .divErrDetail {
 	   
 	     border-bottom: 1px dotted black;
-	     font-size:11pt
+	     font-size:10pt
 	  }
 </style>
- <h5>Order Error Details</h5>		       
+ <h5>Error Details:</h5>		       
 		       <c:forEach var="entry" items="${errorDetailMap}">
 		         <label>OrderId: ${entry.key}</label>
 		         <c:forEach var="err" items="${entry.value}">
@@ -19,7 +19,8 @@
 		            <label>Message:</label>&nbsp;${err.errMessage} <br/>
 		            <label>Method:</label>&nbsp;${err.errMethod} <br/>
 		            <label>Exception:</label>&nbsp;${err.exceptionClass.simpleName} <br/>
-		            <label>Service Id:</label>&nbsp;${order.serviceDetail.serviceId} <br />
+		            <label>Service Id:</label>&nbsp;${err.order.serviceDetail.serviceId} <br />
+		            <label>Capture Id:</label>&nbsp;${err.svcTransactionId} <br />
 		            <label>Time:</label>&nbsp;${err.errTime} <br/>
 		         </div>
 		        </c:forEach>

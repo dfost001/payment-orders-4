@@ -10,7 +10,7 @@ import org.picketbox.util.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
-//import org.springframework.ui.ModelMap;
+
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -24,19 +24,16 @@ import com.mycompany.hosted.checkoutFlow.exceptions.RefundIdException;
 import com.mycompany.hosted.checkoutFlow.jpa.CustomerJpa;
 import com.mycompany.hosted.checkoutFlow.paypal.orders.GetOrderDetails;
 import com.mycompany.hosted.checkoutFlow.paypal.orders.PayPalClient;
-//import com.mycompany.hosted.checkoutFlow.paypal.orders.PaymentDetails;
 import com.mycompany.hosted.checkoutFlow.paypal.orders.PaymentDetails;
 import com.mycompany.hosted.checkoutFlow.servlet_context.ServletContextAttrs;
 import com.mycompany.hosted.errordetail.ErrorDetailBean;
 import com.mycompany.hosted.errordetail.ErrorDetail;
+import com.mycompany.hosted.errordetail.ErrorDetail.ErrorDetailReason;
 import com.mycompany.hosted.exception_handler.EhrLogger;
-//import com.mycompany.hosted.exception_handler.MvcNavigationException;
 
-//import com.mycompany.hosted.model.order.LineItemPayment;
 import com.mycompany.hosted.model.order.OrderPayment;
 
 import com.mycompany.hosted.model.order.ServiceDetail;
-//import com.mycompany.hosted.model.order.OrderShipTo;
 import com.paypal.http.HttpResponse;
 import com.paypal.http.exceptions.HttpException;
 import com.paypal.payments.CapturesRefundRequest;
@@ -58,9 +55,11 @@ public class RefundController {
 	
 	private boolean testPrintResponseOrThrow = true; //RefundIdException thrown before order updated
 	
-	private boolean testRefundIdException = false; //Thrown after order updated
+	//private boolean testRefundIdException = false; //Thrown after order updated
 	
 	private EndpointRuntimeReason reason;
+	
+	private OrderPayment orderPayment = null;
 
 	@Autowired
 	private PayPalClient payPalClient;
@@ -81,9 +80,7 @@ public class RefundController {
 		
 		this.reason = null;
 		
-		HttpResponse<Refund> response = null;	
-		
-		OrderPayment orderPayment = null;
+		HttpResponse<Refund> response = null;		
 		
 		String refundId = null;
 		
@@ -115,9 +112,7 @@ public class RefundController {
 		   
 		   OrderPayment updated = this.updateOrderStatus(orderPayment, response);			   
 		    
-		   redirectAttrs.addFlashAttribute(PaymentStatusController.ORDER, updated);
-		   
-		   this.doRefundIdException(); // Set to false to see duplicate, but do here to see REFUNDED_ONPERSIST_ERR
+		   redirectAttrs.addFlashAttribute(PaymentStatusController.ORDER, updated);		   
 		  	    
 		   return "redirect:" + REDIRECT_STATUS_URL + orderPayment.getOrderId();
 		
@@ -214,7 +209,7 @@ public class RefundController {
             ErrorDetailBean errorBean = WebFlowConstants.errorBeanFromServletContext(httpRequest);
 			
 			errorBean.addDetailToList(null, orderId, ex,
-					this.getClass().getCanonicalName() + "#orderFromDb", 
+					this.getClass().getSimpleName() + "#orderFromDb", 
 					ErrorDetail.ErrorDetailReason.NOT_RETRIEVABLE_FOR_REFUND);	
 			
 		    this.reason = EndpointRuntimeReason.REFUND_ORDER_NOT_RETRIEVABLE;
@@ -333,39 +328,33 @@ public class RefundController {
 		
 		if(refund.id() == null) {
 			
-		   this.reason = EndpointRuntimeReason.REFUND_ID_MISSING;	
-		   throw new RefundIdException(
-				   
-				   EhrLogger.doMessage(
-					this.getClass(), 
-					"debugPrintResponseOrThrow", 
-					"Likey refunded, but Refund Id is not assigned."));					 
-		   }
+			doRefundIdException(this.getClass().getSimpleName() + "#debugPrintResponseOrThrow"); 
+										 
+		}
 		
 		if(testPrintResponseOrThrow) {
+			
 			testPrintResponseOrThrow = false;
-			this.reason = EndpointRuntimeReason.REFUND_ID_MISSING;	
-			throw new RefundIdException(EhrLogger.doMessage(
-			this.getClass(), 
-			"debugPrintResponseOrThrow", 
-			"Testing: Likey refunded, but Refund Id is not assigned."));
+			
+			doRefundIdException(this.getClass().getSimpleName() + "#debugPrintResponseOrThrow");						
 		}
 		
 		return refund.id();
 		
 	}
 	
-	private void doRefundIdException() throws RefundIdException{
+  	private void doRefundIdException(String method) throws RefundIdException {
+  		
+  		RefundIdException ex = new RefundIdException(method);
+  		
+  		ErrorDetailBean errorBean = WebFlowConstants.errorBeanFromServletContext(this.httpRequest);
+  		errorBean.addDetailToList(this.orderPayment,
+  				orderPayment.getOrderId(), ex, method, ErrorDetailReason.REFUND_ID_MISSING );
 		
-		if(this.testRefundIdException) {
-		    testRefundIdException = false;
-		    this.reason = EndpointRuntimeReason.REFUND_ID_MISSING;
-		    throw new RefundIdException(EhrLogger.doMessage(
-		    this.getClass(), 
-		    "doRefundIdException", "Testing: Likey refunded, but Refund Id is not assigned."));
-	    }
+		this.reason = EndpointRuntimeReason.REFUND_ID_MISSING;
+		throw ex; 
 		
-	}
+	} 
 	
  /*private void debugPrintUpdatedOrder(OrderPayment order) {
 		

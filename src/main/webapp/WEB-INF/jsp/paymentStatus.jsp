@@ -273,7 +273,7 @@
     <a href="#" id="support" style="font-weight:bold">
                Support <span class="glyphicon glyphicon-collapse-down"></span></a>
                
-		 <blockquote style="font-size:9pt; display:none">
+		 <blockquote style="font-size:10pt; display:none">
 		   
 		   
 		   <c:if test="${not empty errorDetailMap}">
