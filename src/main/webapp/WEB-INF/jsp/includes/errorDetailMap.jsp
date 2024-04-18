@@ -4,7 +4,7 @@
 <style>
    .divErrDetail {
 	   
-	     border-bottom: 1px dotted black;
+	     border-bottom: 2px dotted black;
 	     font-size:10pt
 	  }
 </style>

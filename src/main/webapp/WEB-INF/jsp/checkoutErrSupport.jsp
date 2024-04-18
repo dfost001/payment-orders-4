@@ -44,7 +44,7 @@
     </ul>
   </div>
   
-     <div style="width:950px">
+     <div style="width:1000px">
       <div style="width:475px;float:left">
       
          <jsp:include page="../flows/checkout/includes/shippingAddress.jsp" />
@@ -59,7 +59,7 @@
        
       </div><!-- end address container -->
       
-      <div style="width:475px;float:left;padding:30px">
+      <div style="width:525px;float:left;padding:30px">
       
          <jsp:include page="../flows/checkout/includes/cartItems.jsp" /> <br/>
          
@@ -70,13 +70,13 @@
           
           <c:choose>
             <c:when test = "${empty checkoutErrModel.payPalError}">
-              <p>Message: <span><c:out value="${checkoutErrModel.message}" escapeXml="false" />
+              <p><label>Message:</label> <span><c:out value="${checkoutErrModel.message}" escapeXml="false" />
                           </span></p>  
             </c:when>
             <c:otherwise>
-               <p>Name: <span>${checkoutErrModel.payPalError.name}</span></p>
-               <p>Message: <span>${checkoutErrModel.payPalError.message}</span></p>
-               <p>Details:</p>
+               <p><label>Name: </label> <span>${checkoutErrModel.payPalError.name}</span></p>
+               <p><label>Message:</label> <span>${checkoutErrModel.payPalError.message}</span></p>
+               <p><label>Details:</label></p>
                <c:forEach var="err" items="${checkoutErrModel.payPalError.details}">
                  <blockquote style="font-size: 10pt">
                      <p>Field: <span>${err.field}</span></p>
@@ -88,27 +88,27 @@
             </c:otherwise>
           </c:choose>          
            
-           <p>Exception UUID: <span>${checkoutErrModel.uuid}</span></p>
+           <p><label>Exception UUID:</label> <span>${checkoutErrModel.uuid}</span></p>
            
-           <p>Cause: <span>${checkoutErrModel.cause}</span></p>
+           <p><label>Cause:</label> <span>${checkoutErrModel.cause}</span></p>
            
-           <p>Reason (Error Code): <span>${checkoutErrModel.exception.reason}</span></p> 
+           <p><label>Reason (Error Code):</label> <span>${checkoutErrModel.exception.reason}</span></p> 
            
-           <p>PayPal Resource Id: <span>${checkoutErrModel.exception.payPalId}</span></p>
+           <p><label>PayPal Resource Id:</label> <span>${checkoutErrModel.exception.payPalId}</span></p>
 		 
-		   <p>Response Status: <span>${checkoutErrModel.responseCode}</span></p>
+		   <p><label>Response Status:</label> <span>${checkoutErrModel.responseCode}</span></p>
           
-           <p>Recoverable: <span>${checkoutErrModel.recoverable}</span></p>           
+           <p><label>Recoverable:</label> <span>${checkoutErrModel.recoverable}</span></p>           
            
-           <p>Error Content-Type: <span>${checkoutErrModel.errContentType}</span>            
+           <p><label>Error Content-Type:</label> <span>${checkoutErrModel.errContentType}</span>            
            
-           <p>Friendly: <span>${checkoutErrModel.friendly}</span></p>                
+           <p><label>Friendly:</label> <span>${checkoutErrModel.friendly}</span></p>                
            
-           <p>Error Method: ${checkoutErrModel.errMethod}</p>
+           <p><label>Error Method:</label> ${checkoutErrModel.errMethod}</p>
            
-           <p>Database Persist Order Id: ${checkoutErrModel.exception.persistOrderId} </p> 
+           <p><label>Local Order Id:</label> ${checkoutErrModel.exception.persistOrderId} </p> 
            
-           <p>Captured Transaction Id: ${checkoutErrModel.exception.capturedPaymentId} </p>
+           <p><label>Captured Transaction Id:</label> ${checkoutErrModel.exception.capturedPaymentId} </p>
            
            <p><b>Message Trace:</b> <br/>
               <c:out value="${checkoutErrModel.messageTrace}" escapeXml="false" /></p>
@@ -134,7 +134,7 @@
         	   
            });
         </script>
-	</div>   
+	</div> <!-- end div width:1000px -->  
  </div><!-- end container -->
 </body>
 </html>
