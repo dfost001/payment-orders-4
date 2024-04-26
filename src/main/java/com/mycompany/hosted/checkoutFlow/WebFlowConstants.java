@@ -11,6 +11,8 @@ import com.mycompany.hosted.errordetail.ErrorDetailBean;
 
 public class WebFlowConstants {
 	
+	public enum IntegrationValue {AdvancedCheckout, StandardCheckout};
+	
 	public static final String CART = "cart";
 	
 	public static final String CUSTOMER_KEY = "customer";
@@ -28,6 +30,8 @@ public class WebFlowConstants {
 	public static final String PAYPAL_SERVER_ID = "serverId";
 	
 	public static final String PAYPAL_SCRIPT_ID = "scriptId";
+	
+	public static final String PAYPAL_INTEGRATION_TYPE = "integrationType";
 	
 	
 	//Exception stored in ServletContext using this key

@@ -58,15 +58,19 @@ public class CaptureOrder {
 	
 	private EndpointRuntimeReason reason;
 	
-	private void resetProperties() {
+	private String integrationType;
+	
+	private void resetProperties(RequestContext request) {
 		
 		capturedPaymentId = "";
 		capture = null;
+		integrationType = request.getExternalContext()
+				.getSessionMap().getString(WebFlowConstants.PAYPAL_INTEGRATION_TYPE);
 	}
 	
 	public String capture(RequestContext ctx) throws CheckoutHttpException  {		
 		
-		 resetProperties();	//Reset module-level captureId
+		 resetProperties(ctx);	//Reset module-level captureId
 		
 		 PaymentDetails details = (PaymentDetails)ctx.getExternalContext()
 			       .getSessionMap()
@@ -234,12 +238,10 @@ public class CaptureOrder {
 	  }
 	  
 	  private String initCaptureId(Order order, PaymentDetails details, String json) 
-		         throws ProcessorResponseNullException {	
-		  
-		      
+		         throws ProcessorResponseNullException {			      
 	     
 	      if(order.status().equals(CaptureStatusEnum.COMPLETED.name()) 
-	    		  && isNullOrEmpty(capture.id())) {
+	    		  && isNullOrEmpty(this.capture.id())) {
 	    		  
 	    	      this.reason = EndpointRuntimeReason.CAPTURE_EMPTY_CAPTURE_ID;
 	    		  this.throwIllegalArg("initCaptureId",
@@ -311,6 +313,9 @@ public class CaptureOrder {
 	  
 	  private void debugPrintProcessorResponseOrThrow(Capture capture)
 			  throws ProcessorResponseNullException {
+		  
+		  if(this.integrationType.equals(WebFlowConstants.IntegrationValue.StandardCheckout.name()))
+			  return;
 		  
 		  ProcessorResponse processor = capture.processorResponse();
 		  

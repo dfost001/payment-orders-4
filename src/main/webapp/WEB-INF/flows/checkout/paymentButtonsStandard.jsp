@@ -29,7 +29,7 @@ and open the template in the editor.
 	  	  
    <script src="https://www.paypal.com/sdk/js?client-id=${clientId}&commit=false&debug=false&components=buttons,funding-eligibility"></script>	  
  
-   <script src="${pageContext.request.contextPath}/spring/resources/javascript/checkoutButtons.js"></script>
+   <script src="${pageContext.request.contextPath}/spring/resources/javascript/checkoutStandard.js"></script>
     <style>
        #paypal-button-container {
 	      width: 450px;

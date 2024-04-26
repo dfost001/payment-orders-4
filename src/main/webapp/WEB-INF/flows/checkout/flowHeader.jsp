@@ -56,6 +56,13 @@
 	       
 	            <a href='${flowExecutionUrl}&_eventId=home'>
 		            Home</a>  </label>
+		   <c:if test="${flowRequestContext.currentState.id eq 'paymentButtons' }" >         
+		       <label style="float:left; margin-left:30px; margin-top:15px; margin-bottom:34px">
+	       
+	            <a href='${flowExecutionUrl}&_eventId=payPalAccount' class="btn btn-primary">
+		            <img src='${pageContext.request.contextPath}/spring/resources/images/pp_logo37x23.jpg'/>
+		            <span style="color:white">Login with your PayPal Account</span></a>  </label> 
+		   </c:if>                 
 	      
 	       <ul class="nav nav-pills" role="tablist" style="float:right; margin-right:30px">	 
 	       

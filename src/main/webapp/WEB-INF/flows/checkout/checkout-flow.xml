@@ -152,6 +152,9 @@
           <evaluate expression="generateClientToken.generate()"  result="viewScope.clientToken"  />                
        </on-render>      
        
+       <transition on="payPalAccount" to="ppStandardIntegration">
+         <set name="flashScope.clientId" value="viewScope.clientId" />
+       </transition>
        <transition on="editShipAddress" to="selectShipAddress" />
        <transition on="cancel" to="selectShipAddress" />
        
@@ -165,8 +168,19 @@
        
        <transition on="reviewDetails" to="getDetails" >  
           <set name="externalContext.sessionMap.scriptId" value="requestParameters.paymentId" />
+           <set name="externalContext.sessionMap.integrationType" value="'AdvancedCheckout'" />
        </transition>          
    
+   </view-state>
+   
+   <view-state id="ppStandardIntegration" view="paymentButtonsStandard.jsp">
+       <on-entry>
+          <set name="viewScope.clientId" value="flashScope.clientId" />
+       </on-entry>
+       <transition on="reviewDetails" to="getDetails" >  
+          <set name="externalContext.sessionMap.scriptId" value="requestParameters.paymentId" />
+          <set name="externalContext.sessionMap.integrationType" value="'StandardCheckout'" />
+       </transition>
    </view-state>
    
    <action-state id="getDetails">

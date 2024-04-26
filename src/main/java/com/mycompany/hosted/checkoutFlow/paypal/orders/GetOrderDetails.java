@@ -44,7 +44,7 @@ public class GetOrderDetails  {
 	 private boolean testRecoverableException = false;
 	 private boolean testPaymentSourceNullException = false;
 	 
-	 private String debugIntegrationType = "AdvancedCheckout" ;
+	 private String integrationType;
 	 
 	 private Customer customer;
 	 
@@ -61,6 +61,8 @@ public class GetOrderDetails  {
 		   OrderId orderId = null;
 		   
 		   HttpResponse<Order> response = null;
+		   
+		   
 		    
 		    try {
 		    	
@@ -127,9 +129,21 @@ public class GetOrderDetails  {
 	       
 	       this.customer = handleNullCustomer(ctx);
 	    
-	       this.paymentDetails = new PaymentDetails(orderId.getId());		       
+	       this.paymentDetails = new PaymentDetails(orderId.getId());	
+	       
+	       this.integrationType = ctx.getExternalContext().getSessionMap()
+	    		   .get(WebFlowConstants.PAYPAL_INTEGRATION_TYPE).toString();
+	       
+	       if(StringUtil.isNullOrEmpty(integrationType)) {
+	    	   
+	    	   this.reason = EndpointRuntimeReason.NULL_ATTRIBUTE;
+	    	   
+	    	   EhrLogger.throwIllegalArg(this.getClass(), "evalRequest", 
+	    			   "PayPal type,  Standard or Advanced, is not in the session");
+	       }
 	    
-	       if(debugIntegrationType.contentEquals("AdvancedCheckout" )) {
+	       if(integrationType.contentEquals
+	    		   (WebFlowConstants.IntegrationValue.AdvancedCheckout.name())) {
 	    	   
 	    	  compareAndInitPayerFromSession(paymentDetails, customer, ctx, 
 	    			  flowAttrs.isErrorGetDetails()); //throws IllegalArgument
@@ -230,7 +244,7 @@ public class GetOrderDetails  {
 		 
 		 Order order = response.result();
 		 
-		 if(debugIntegrationType.equals("AdvancedCheckout"))		 
+		 if(integrationType.equals("AdvancedCheckout"))		 
 		     initPaymentSourceOrThrow(order, details);	//throws PaymentSourceNull 		 
 		 
 		 details.setCreatedStatus(GetDetailsStatus.valueOf(order.status())); //Enum declared on PaymentDetails		
@@ -477,7 +491,7 @@ public class GetOrderDetails  {
 					 "Billing Email",
 					    "Your billing email is not the same as your customer email '"
 					    + customer.getEmail().toLowerCase() + "'. "
-					    + "Please verify." ) ;
+					    + "Do you want to cancel the payment?" ) ;
 		     }		 
 		
 		     details.setBillingEmail(order.payer().email().toLowerCase());			

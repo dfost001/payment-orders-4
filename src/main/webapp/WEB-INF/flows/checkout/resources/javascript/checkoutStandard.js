@@ -48,7 +48,7 @@ $(document).ready(function(){
 	
 	 try {
 	      paypal.Buttons({    	 
-	    	fundingSource: paypal.FUNDING.CARD,	    	
+	    	//fundingSource: paypal.FUNDING.CARD,	    	
 	        createOrder: function() {
 	          return fetch(contextPath() + '/spring/paypal/order/create', {
 	        	  
