@@ -32,7 +32,7 @@ and open the template in the editor.
    <script src="${pageContext.request.contextPath}/spring/resources/javascript/checkoutStandard.js"></script>
     <style>
        #paypal-button-container {
-	      width: 450px;
+	      width: 350px;
 	      float: left;
        }
 
@@ -71,7 +71,7 @@ and open the template in the editor.
 
          <div id="paypal-button-container"></div>
          
-         <div class="divCart">             
+         <div class="divCart" style="font-size: 11pt">             
              <jsp:include page="includes/shippingAddress.jsp"></jsp:include>
              <jsp:include page="includes/cartItems.jsp"></jsp:include>
          

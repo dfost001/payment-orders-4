@@ -48,7 +48,7 @@ $(document).ready(function(){
 	
 	 try {
 	      paypal.Buttons({    	 
-	    	//fundingSource: paypal.FUNDING.CARD,	    	
+	    	fundingSource: paypal.FUNDING.PAYPAL,	    	
 	        createOrder: function() {
 	          return fetch(contextPath() + '/spring/paypal/order/create', {
 	        	  
@@ -71,7 +71,7 @@ $(document).ready(function(){
 	    	  
 	             });		  
 	        },
-	        onApprove: function(data, actions) {
+	        onApprove: function(data, actions) { //Does not execute if Id not returned at createOrder
 	        	
 	        	console.log("onApprove: " + JSON.stringify(data));
 	        	

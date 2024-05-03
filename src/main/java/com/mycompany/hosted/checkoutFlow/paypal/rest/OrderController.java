@@ -54,7 +54,9 @@ public class OrderController {
 				this.throwIllegalArgument("createOrder",
 						"Customer or Selected_Postal_Address or both are null in the session");
 			}
-			Order order = createOrder.create(cart, customer); //PayPal fills in billing with shipping
+			Order order = createOrder.create(cart, postal); //PayPal with a buyer account fills in shipping details
+			
+			//Order order = createOrder.create(cart, customer); //PayPal incorrectly fills in credit-card billing with shipping
 
 			String id = order.id();
 

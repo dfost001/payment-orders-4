@@ -57,7 +57,7 @@
 	            <a href='${flowExecutionUrl}&_eventId=home'>
 		            Home</a>  </label>
 		   <c:if test="${flowRequestContext.currentState.id eq 'paymentButtons' }" >         
-		       <label style="float:left; margin-left:30px; margin-top:15px; margin-bottom:34px">
+		       <label style="float:left; margin-left:30px;  margin-bottom:37px">
 	       
 	            <a href='${flowExecutionUrl}&_eventId=payPalAccount' class="btn btn-primary">
 		            <img src='${pageContext.request.contextPath}/spring/resources/images/pp_logo37x23.jpg'/>

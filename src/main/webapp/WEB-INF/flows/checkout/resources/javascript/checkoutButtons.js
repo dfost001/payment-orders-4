@@ -6,16 +6,17 @@ $(document).ready(function(){
     var contextPath = function(){
 		
 		var href = window.location.href;
+		console.log("location=" + href);
         
         var startPos = (location.protocol + "://").length;
         
         var startContextPosition = href.indexOf("/", startPos);           
         
-        console.log("contextStartPosition=" + startContextPosition);
+       // console.log("contextStartPosition=" + startContextPosition);
         
         var endContextPosition = href.indexOf("/", startContextPosition + 1);
         
-        console.log("endContextPosition=" + endContextPosition);
+       // console.log("endContextPosition=" + endContextPosition);
         
        // Does not include trailing '/'
         var baseUrl = href.substring(startContextPosition, endContextPosition); 
@@ -285,16 +286,25 @@ $(document).ready(function(){
 	    
 	} //end doHostedFields
 	
-	console.log("card-holder-name:" + document.getElementById("card-holder-name").value.trim());
+	var doChangeLocation = function() {
+		
+		var postBackUrl = window.location.href;
+		
+		postBackUrl += "&_eventId=notEligible";
+		
+		window.location.href = postBackUrl;
+		
+	} ;
 	
 	/*
-	 *To do: Call standard integration script function paypal.Buttons 
+	 *To do: Call standard integration script function paypal.Buttons (DONE)
 	 */
 	if (!paypal.HostedFields.isEligible()) {
-		alert("Hosted Fields Failed: Not eligible");		
+		doChangeLocation();		
 		
 	} else {
 		doHostedFields();
-	}
+	}	
 	
+	//doChangeLocation();
 }); //end ready

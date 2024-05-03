@@ -14,7 +14,7 @@
   }
 </style>
 
- <table class="table table-condensed" style="width:400px">
+ <table class="table" style="width:400px">
         <caption>Items:</caption>
     <c:forEach var="item" items="${cart.cartList}">
         <tr>

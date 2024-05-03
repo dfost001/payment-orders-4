@@ -155,6 +155,9 @@
        <transition on="payPalAccount" to="ppStandardIntegration">
          <set name="flashScope.clientId" value="viewScope.clientId" />
        </transition>
+        <transition on="notEligible" to="ppStandardIntegration">
+         <set name="flashScope.clientId" value="viewScope.clientId" />
+       </transition>
        <transition on="editShipAddress" to="selectShipAddress" />
        <transition on="cancel" to="selectShipAddress" />
        
@@ -181,6 +184,7 @@
           <set name="externalContext.sessionMap.scriptId" value="requestParameters.paymentId" />
           <set name="externalContext.sessionMap.integrationType" value="'StandardCheckout'" />
        </transition>
+        <transition on="createPaymentError" to="errCheckoutException" />       
    </view-state>
    
    <action-state id="getDetails">
