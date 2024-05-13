@@ -29,7 +29,7 @@ public class WebflowDebug {
 		myAttrs.setFlowCartItems(cart);
 	}
 
-	public void throwEmptyCart(Cart cart, RequestContext ctx, MyFlowAttributes flowAttrs) 
+	public void throwEmptyCart(Cart cart, RequestContext ctx) 
 			throws WebflowCartEmptyException {
 		
 		System.out.println("WebflowDebug#throwEmptyCart: executing");				
@@ -53,7 +53,7 @@ public class WebflowDebug {
     private void checkMvcCart(Cart cart, RequestContext ctx) {
 		
 		if(cart == null)
-			throwApplicationException("throwEmptyCart", "Cart passed to procedure is null.");
+			this.throwApplicationException("throwEmptyCart", "Cart passed to procedure is null.");
 		
 		Cart mvcCart = (Cart) ctx.getExternalContext().getSessionMap().get("cart");
 
@@ -85,7 +85,7 @@ public class WebflowDebug {
 					"checkout-flow entered with an empty cart");
 		try {
 			
-		   this.throwEmptyCart(cart, ctx, flowAttrs); 
+		   this.throwEmptyCart(cart, ctx); 
 		   
 		} catch (WebflowCartEmptyException e) {
 			throw new OnRenderCartEmptyException();

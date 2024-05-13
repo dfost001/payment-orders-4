@@ -105,35 +105,8 @@ and open the template in the editor.
         
         <jsp:include page="includes/support.jsp" />
     
-    
-    <!-- Bootstrap modal with a link that returns the details view -->
-    
- <div class="modal fade" tabindex="-1" role="dialog" id="myModal">
-  <div class="modal-dialog modal-lg" role="document">
-    <div class="modal-content">
-      <div class="modal-header">       
-        <h4 class="modal-title">Review Details</h4>
-      </div>
-      <div class="modal-body">
-      
-        <p>Please authorize your payment: </p>
-       
-        <form action="${flowExecutionUrl}" method="post">
-        <p>
+        <jsp:include page="includes/cardEntryModals.jsp" />
         
-           <input type="hidden" name="paymentId" value="" />
-        
-           <input type="submit" name="_eventId_reviewDetails" class="btn btn-info btn-lg"
-               value="Review Payment Details" />   
-            
-        </p>
-        </form>
-       
-      </div><!-- end modal-body -->
-     
-    </div><!-- end modal-content -->
-  </div><!-- end modal-dialog -->
-</div><!-- end modal -->
 
     <script>
     

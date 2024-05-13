@@ -57,7 +57,8 @@
 	<c:if test="${not empty allMessages}">
 	   <div class="alert alert-danger">
 	    <ul>	       
-	           <li>${allMessages[0].text}</li>	       
+	           <li>${allMessages[0].text} &nbsp; 
+	                 <a href="${flowExecutionUrl}&_eventId=cancel" class="alert-link">Cancel</a></li>	       
 	    </ul>
 	   </div>
 	</c:if>

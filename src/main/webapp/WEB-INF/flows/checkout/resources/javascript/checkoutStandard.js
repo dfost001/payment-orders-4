@@ -88,9 +88,10 @@ $(document).ready(function(){
 	        },
             onError: function(err) {
 	    		
-	    		$(".alert").slideDown(500);
+	    		//$(".alert").slideDown(500);
 	    		
-	    		$("#alertContent").html("An error occurred. " + err);
+	    		//$("#alertContent").html("An error occurred. " + err);
+            	window.alert(err);
 	    		
 	    	}
 	      }).render('#paypal-button-container'); // Display payment options on your web page

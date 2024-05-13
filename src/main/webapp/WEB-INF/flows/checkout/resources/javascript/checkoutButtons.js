@@ -296,15 +296,33 @@ $(document).ready(function(){
 		
 	} ;
 	
+	var showErrorModal = function() {
+		
+		var button = $("#modalErrForm :submit");
+		
+		button.attr("name", "_eventId_notEligible"); //Bind to transition
+		
+		button.attr("value", "PayPal Login");
+		
+		var message = "Please pay with PayPal. An account is not necessary. <br />" 
+			+ "You may pay with your credit card";
+		
+		$("#myModalError .modal-body #notEligible").html(message);
+		
+		$("#myModalError").modal("show");
+		
+	};
+	
 	/*
 	 *To do: Call standard integration script function paypal.Buttons (DONE)
 	 */
 	if (!paypal.HostedFields.isEligible()) {
-		doChangeLocation();		
+		//doChangeLocation();	
+		showErrorModal();
 		
 	} else {
 		doHostedFields();
 	}	
 	
-	//doChangeLocation();
+	//showErrorModal();
 }); //end ready
