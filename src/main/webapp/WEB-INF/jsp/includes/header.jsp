@@ -94,7 +94,7 @@
 	                  <a href="#" id="cartAnchor" >
 	                          
 	                     <img src="${pageContext.request.contextPath}/spring/resources/images/cart-button.gif"
-	                      width="20" height="15" >
+	                      width="20" height="15" />
 	                          <span class="caret"></span></a> </label>                          
 	                 
 	           

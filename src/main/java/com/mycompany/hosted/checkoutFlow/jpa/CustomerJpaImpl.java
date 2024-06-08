@@ -7,7 +7,6 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceException;
 
 import org.springframework.stereotype.Repository;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.mycompany.hosted.model.Customer;
@@ -17,7 +16,7 @@ import com.mycompany.hosted.model.order.OrderPayment;
 import com.mycompany.hosted.checkoutFlow.jpa.OrderNotFoundException;
 import com.mycompany.hosted.exception_handler.EhrLogger;
 
-@Service
+
 @Repository
 public class CustomerJpaImpl implements CustomerJpa {
 	

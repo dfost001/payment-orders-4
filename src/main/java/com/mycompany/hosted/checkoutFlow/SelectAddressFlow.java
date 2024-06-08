@@ -39,9 +39,7 @@ public class SelectAddressFlow {
 		
 		return postal;
 		
-	}
-	
-	
+	}	
 	
 	private List<? super PostalAddress> getPostalList(Customer customer) {
 		

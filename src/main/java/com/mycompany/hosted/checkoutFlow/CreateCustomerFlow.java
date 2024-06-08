@@ -213,12 +213,14 @@ public class CreateCustomerFlow {
 				 	
 		 
 	}	
-	
+	/*
+	 * Note: The parameter passed to MessageContext#addMessage(MessageResolver)
+	 */
 	private void initMessageContext(MessageContext messageCtx, String id, String code){
 		messageCtx.addMessage(new MessageBuilder()
 		.code(code)
-		.error()
 		.args("Customer Id", id)
+		.error()		
 		.source("Customer Id")
 		.build());
 	}

@@ -236,7 +236,8 @@
    
    <view-state id="errNavigation" view="errNavigation.jsp">
       <on-entry>
-        <set name="viewScope.exception" value="flowRequestContext.flashScope.exception" />         
+        <set name="viewScope.exception" value="flowRequestContext.flashScope.exception" />  
+        <evaluate expression="webflowDebug.debugPrintOnRefresh(flowRequestContext, 'on-entry')"   />        
       </on-entry>
       <on-render>
          <evaluate expression="webflowDebug.debugPrintOnRefresh(flowRequestContext, 'on-render')"   />  

@@ -78,7 +78,7 @@ $(document).ready(function(){
 	        	console.log("onApprove#actions: " + JSON.stringify(actions));
 	        	
 	        	if(!data.orderID)
-	        		throw ("onApprove: Data does not contain an orderID");
+	        		throw ("onApprove: Data does not contain an orderID"); //After debugging, remove (not executed)
 	        	
 	        	$("input[name='paymentId']").val(data.orderID);
 	        	

@@ -38,13 +38,13 @@ public class PaymentStateAttrs {
 		return PaymentState.ERR_ON_CAPTURE.name(); //HttpException on Capture, re-execute	
 	}
 	else if(map.get(WebFlowConstants.PAYMENT_DETAILS) != null) //end-user exited at details view
-		 return PaymentState.DETAILS_COMPLETED.name(); // or recoverable HttpException on Capture (entrance not thru support) 	
+		 return PaymentState.DETAILS_COMPLETED.name(); //Also recoverable at Capture, if not re-entered thru support 	
 	
-	else if(map.get(WebFlowConstants.SELECTED_POSTAL_ADDR) != null) //Card entry not completed, 
-		//or non-recoverable error on getDetails()
+	else if(map.get(WebFlowConstants.SELECTED_POSTAL_ADDR) != null) //Set into session on transition to card-entry 
+		//remains in session for non-recoverable error on getDetails()
 		return PaymentState.SHIP_SELECTED.name();
 	
-	else if(map.get(WebFlowConstants.CUSTOMER_KEY) != null)//Customer retrieved, ShipAddress not selected
+	else if(map.get(WebFlowConstants.CUSTOMER_KEY) != null)//Set into session on transition to selectShipAddress view
 		return PaymentState.LOGGED_IN.name();
 	
 	return PaymentState.NONE.name(); //return customerLogin

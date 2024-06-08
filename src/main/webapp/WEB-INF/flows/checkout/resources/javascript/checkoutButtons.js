@@ -314,7 +314,7 @@ $(document).ready(function(){
 	};
 	
 	/*
-	 *To do: Call standard integration script function paypal.Buttons (DONE)
+	 *  Bind standard integration view/script via input on error Modal (see showErrorModal) 
 	 */
 	if (!paypal.HostedFields.isEligible()) {
 		//doChangeLocation();	

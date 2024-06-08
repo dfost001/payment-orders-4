@@ -134,7 +134,8 @@ public class EvalApplicationState {
 		case "addressView":
 			
 			 expectedOnEnter = this.entryPaymentDetails == null; 			
-			 expectedOnRender = entryCustomer == currentCustomer && currentPaymentDetails == null;		        
+			 expectedOnRender = entryCustomer == currentCustomer && currentPaymentDetails == null;
+			 //expectedOnRender = currentPaymentDetails == null;
 	         detail = entryCustomer != currentCustomer ?
 		    		"Customer on-entry is not equal to current session. " : ""; //Copy not set into session until exited 
 	         break;
