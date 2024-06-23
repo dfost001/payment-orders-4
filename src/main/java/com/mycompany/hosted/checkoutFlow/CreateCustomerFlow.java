@@ -215,6 +215,8 @@ public class CreateCustomerFlow {
 	}	
 	/*
 	 * Note: The parameter passed to MessageContext#addMessage(MessageResolver)
+	 * Note: args are template variables present in the bundle message in order
+	 * MVC MessageSource is used to locate bundle
 	 */
 	private void initMessageContext(MessageContext messageCtx, String id, String code){
 		messageCtx.addMessage(new MessageBuilder()

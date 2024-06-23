@@ -93,7 +93,7 @@ public class SelectAddressFlow {
 		
 		   List<ShipAddress> shipAddresses = customer.getShipAddressList();
 		
-		   postal = find(shipAddresses, id);
+		   postal = this.find(shipAddresses, id);
 		}	
 		
 		return postal;	
@@ -182,8 +182,8 @@ public class SelectAddressFlow {
 		}
 		else if(Customer.class.isAssignableFrom(postalSelected.getClass()))
 			 return;
-		else if(((ShipAddress)postalEdited).getId() == null) //Inserting
-			return;
+		else if(((ShipAddress)postalEdited).getId() == null) //Inserting - 
+			return; //postalEdited is obtained from currentEvent before update
 		
 		else if(((ShipAddress)postalEdited).getId().equals(
 				
