@@ -173,27 +173,29 @@ public class SelectAddressFlow {
 		if(postalSelected == null)
 		   return ;
 		
-		if(Customer.class.isAssignableFrom(postalEdited.getClass())) {
-		    if(Customer.class.isAssignableFrom(postalSelected.getClass())) {			
+		if(postalEdited instanceof Customer) { //If Customer has been edited
+		    if(postalSelected instanceof Customer) { //If Customer previously selected			
 		
-			   sessionMap.put(WebFlowConstants.SELECTED_POSTAL_ADDR, postalEdited); 			   
-			   return;
-		    }		    
-		}
-		else if(Customer.class.isAssignableFrom(postalSelected.getClass()))
-			 return;
+			   sessionMap.put(WebFlowConstants.SELECTED_POSTAL_ADDR, postalEdited); //Assign updated to session			   
+			   return; //And return
+		    } else return;	//Else Customer has been edited, and not previously selected  
+		} 
+		else if(postalSelected instanceof Customer) //Customer selected and not edited
+			return; //Now postalSelected can be cast to ShipAddress	
+		
 		else if(((ShipAddress)postalEdited).getId() == null) //Inserting - 
-			return; //postalEdited is obtained from currentEvent before update
+			return; //postalEdited is obtained from currentEvent before update generates an Id
 		
 		else if(((ShipAddress)postalEdited).getId().equals(
 				
-			((ShipAddress)postalSelected).getId()))
+			((ShipAddress)postalSelected).getId())) {
 			
                sessionMap.put(WebFlowConstants.SELECTED_POSTAL_ADDR, postalEdited);
+		}
 		
-		     EhrLogger.consolePrint(this.getClass(), "updateSessionIfEdited", 
+		EhrLogger.consolePrint(this.getClass(), "updateSessionIfEdited", 
 		    		 "postalEdited == postalSelected: " 
-		              + postalEdited.equals(postalSelected));		
+		              + postalEdited.equals(postalSelected));	//Should not be equal since edited is cloned	
 	}
 	
 	
