@@ -121,12 +121,14 @@
      <subflow-state id="updateShipAddressSub" subflow="address-sub-flow">     
          <input name="addressIn"      value="flashScope.postalAddress" />         
          <input name="myFlowAttrs" value="myFlowAttrs" />         
-         <input name="originalCustomer" value="externalContext.sessionMap.customer" />                 
+         <input name="originalCustomer" value="externalContext.sessionMap.customer" />   
+                       
          <transition on="cancelled" to="evalPaymentState" >    
             <evaluate 
             expression="createCustomerFlow.customerIntoSessionOnCancel
                           (currentEvent.attributes.customerCopy, flowRequestContext, myFlowAttrs)" />
-         </transition>         
+         </transition>     
+             
          <transition on="updated" to="selectShipAddress">     
              <evaluate expression="myFlowAttrs.setCustomerInsertion(false)" />     
              <evaluate expression="jpaUpdateAddress.update(currentEvent.attributes.postalAddress,
@@ -134,7 +136,8 @@
             <set name="externalContext.sessionMap.customer" value="customer" />
             <evaluate expression="selectAddressFlow.updateSessionSelectionIfEdited(flowRequestContext, 
                                    currentEvent.attributes.postalAddress)"    />
-         </transition>          
+         </transition>  
+                 
          <transition on="home"   to="mvcHome"  />         
          <transition on="cart"   to="mvcCart" />    
    </subflow-state>
