@@ -39,18 +39,13 @@ public class CustomerJpaImpl implements CustomerJpa {
 		
 	}
 	
-	@Transactional
+/*	@Transactional
 	public void insertCustomer(Customer customer) {
 		
 		em.persist(customer);
-	}
+	} */
 	
-	@Transactional
-	public void editCustomer(Customer customer) {
-		
-		em.merge(customer);
-	}
-
+	
 	@Override
 	@Transactional
 	public Customer updateCustomer(Customer customer) {
