@@ -77,12 +77,10 @@ $(document).ready(function(){
 	        	
 	        	console.log("onApprove#actions: " + JSON.stringify(actions));
 	        	
-	        	if(!data.orderID)
-	        		throw ("onApprove: Data does not contain an orderID"); //After debugging, remove (not executed)
+	        	/*if(!data.orderID)
+	        		throw ("onApprove: Data does not contain an orderID"); //Does not execute*/
 	        	
-	        	$("input[name='paymentId']").val(data.orderID);
-	        	
-	        	console.log("paymentId assigned: " + $("input[name='paymentId']").val());
+	        	$("input[name='paymentId']").val(data.orderID);	        	
 	        	
 	        	$("#myModal").modal("show");	        	
 	        },
