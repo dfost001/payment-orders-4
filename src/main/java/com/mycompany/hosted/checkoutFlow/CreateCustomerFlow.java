@@ -98,12 +98,12 @@ public class CreateCustomerFlow {
 					 null) ;
 		}		
 		
-       MessageContext mctx = vUtil.validate((PostalAddress)customer);
+       MessageContext mctx = vUtil.validate((PostalAddress)customer); //Validate the Customer
 		
 		if(mctx.hasErrorMessages())
 			 this.throwIllegalArg("", "customerIntoSession", mctx); 
 		
-		validateRelatedShipAddress(customer);
+		validateRelatedShipAddress(customer); //Validate List<ShipAddress>
 		
 		SharedAttributeMap<Object> sharedSession = ctx.getExternalContext()
 				.getSessionMap(); 
