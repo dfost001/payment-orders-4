@@ -293,6 +293,8 @@ public class CaptureOrder {
 	      details.setProcessorResponse(capture.processorResponse());
 	      
 	      details.setCompletionStatus(GetDetailsStatus.valueOf(order.status()));
+	      
+	      EhrLogger.consolePrint(this.getClass(), "initPaymentDetails", "Returning successfully");
 		  
 	  }
 	  
@@ -345,6 +347,9 @@ public class CaptureOrder {
 	  
 	
 	 private boolean isFailedProcessorCode(ProcessorResponse response) {
+		 
+		 if(response == null) //Standard Integration
+			 return false;
 		 
 		 if(this.testFailedCvv) {
 			 response.cvvCode("N");

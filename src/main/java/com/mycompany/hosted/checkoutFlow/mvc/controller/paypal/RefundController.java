@@ -6,7 +6,7 @@ import java.text.MessageFormat;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.picketbox.util.StringUtil;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,8 +32,10 @@ import com.mycompany.hosted.errordetail.ErrorDetail.ErrorDetailReason;
 import com.mycompany.hosted.exception_handler.EhrLogger;
 
 import com.mycompany.hosted.model.order.OrderPayment;
-
 import com.mycompany.hosted.model.order.ServiceDetail;
+
+import com.mycompany.hosted.formatter.StringUtil;
+
 import com.paypal.http.HttpResponse;
 import com.paypal.http.exceptions.HttpException;
 import com.paypal.payments.CapturesRefundRequest;

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout
+               pattern="%d %p %C{1.} [%t] %m%n" />
+        </Console>
+
+      
+    </Appenders>
+
+    <Loggers>
+        <!-- LOG everything at INFO level -->
+        <Root level="info">
+            <AppenderRef ref="Console" />            
+        </Root>       
+        
+        <Logger name="org.springframework" level="DEBUG" additivity="false">          
+           <AppenderRef ref="Console" />           
+        </Logger>
+        
+        <Logger name="org.springframework.web.servlet.DispatcherServlet" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console" />
+        </Logger>
+                  
+    </Loggers>
+    
+ </Configuration>   

@@ -44,8 +44,6 @@ and open the template in the editor.
        .modal-body p {
           text-align: center
        }
-     
-     }
     </style>
 
 </head>
