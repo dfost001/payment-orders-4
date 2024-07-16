@@ -89,7 +89,8 @@ $(document).ready(function(){
 	    		//$(".alert").slideDown(500);
 	    		
 	    		//$("#alertContent").html("An error occurred. " + err);
-            	window.alert(err);
+            	
+            	window.alert(err); //Executes before call-back that invokes handleError
 	    		
 	    	}
 	      }).render('#paypal-button-container'); // Display payment options on your web page
