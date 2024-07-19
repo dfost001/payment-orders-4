@@ -4,7 +4,7 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
-
+import org.apache.commons.dbcp2.BasicDataSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.orm.jpa.JpaTransactionManager;
@@ -37,6 +37,28 @@ public class JpaConfig {
 		
 	}
 	
+	 public DataSource dataSourceMvcSample() {
+	        
+	        BasicDataSource source = new BasicDataSource();
+	        source.setDriverClassName("com.mysql.cj.jdbc.Driver");
+	        source.setUrl("jdbc:mysql://localhost:3306/springmvcsample?useSSL=false");
+	        source.setUsername("root");
+	        source.setPassword("gw7749");
+	   
+	        return source;
+	    }
+	 
+	 public DataSource dataSourceValidationSchema() {
+	        
+	        BasicDataSource source = new BasicDataSource();
+	        source.setDriverClassName("com.mysql.cj.jdbc.Driver");
+	        source.setUrl("jdbc:mysql://localhost:3306/validation_support?useSSL=false");
+	        source.setUsername("root");
+	        source.setPassword("gw7749");
+	   
+	        return source;
+	    }
+	
 	private JpaVendorAdapter jpaVendorAdapter() {
 		
 		return new HibernateJpaVendorAdapter();
@@ -47,7 +69,9 @@ public class JpaConfig {
 		
 		LocalContainerEntityManagerFactoryBean bean = new LocalContainerEntityManagerFactoryBean();
 		
-		bean.setDataSource(dataSourceLookup("java:jboss/datasources/springmvcsample"));
+		//bean.setDataSource(dataSourceLookup("java:jboss/datasources/springmvcsample"));
+		
+		bean.setDataSource(dataSourceMvcSample());
 		
 		bean.setJpaVendorAdapter(jpaVendorAdapter());
 		
@@ -67,7 +91,9 @@ public class JpaConfig {
 		
 		LocalContainerEntityManagerFactoryBean bean = new LocalContainerEntityManagerFactoryBean();
 		
-		bean.setDataSource(dataSourceLookup("java:jboss/datasources/supported_validation"));
+		//bean.setDataSource(dataSourceLookup("java:jboss/datasources/supported_validation"));
+		
+		bean.setDataSource(dataSourceValidationSchema());
 		
 		bean.setJpaVendorAdapter(jpaVendorAdapter());
 		
