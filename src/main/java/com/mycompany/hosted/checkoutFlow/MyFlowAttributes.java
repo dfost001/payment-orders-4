@@ -78,7 +78,7 @@ public class MyFlowAttributes implements Serializable {
 	
 	
 
-	public void preserveMessagesIntoSession(RequestContext request, MessageContext msgCtx) {
+	public void preserveMessagesIntoViewScope(RequestContext request, MessageContext msgCtx) {
 		
 		Message[] messages = null;
 		
@@ -86,19 +86,24 @@ public class MyFlowAttributes implements Serializable {
 		    messages =  msgCtx.getAllMessages();
 		else return;
 		
-		if(messages.length > 0) {
+		/*if(messages.length > 0) {
 			request.getExternalContext()
 			   .getSessionMap()
 			   .put(ALL_MESSAGES, messages);
 			return;
-		}		
+		}*/
+		if(messages.length > 0) {
+		    request.getViewScope().put(ALL_MESSAGES, messages);		
+	    }
 	}
 	
-	public void removeSessionMessages(RequestContext request) {
+	public void removeViewScopeMessages(RequestContext request) {
 	
-		request.getExternalContext()
+		/*request.getExternalContext()
 		   .getSessionMap()
-		   .remove(ALL_MESSAGES);
+		   .remove(ALL_MESSAGES);*/
+		
+		request.getViewScope().remove(ALL_MESSAGES);
 	
     }
 
