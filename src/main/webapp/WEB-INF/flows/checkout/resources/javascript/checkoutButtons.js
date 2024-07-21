@@ -242,7 +242,9 @@ $(document).ready(function(){
 	        },		       
             onError: function(err) {
             	
-            	alert("onError: An error occurred");
+            	console.log("onError call-back is executing " + err); //Does not execute
+            	
+            	//alert("onError: An error occurred");
 	    		
 	    		//$(".alert").slideDown(500);
 	    		
