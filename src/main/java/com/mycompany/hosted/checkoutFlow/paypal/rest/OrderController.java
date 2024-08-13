@@ -56,7 +56,7 @@ public class OrderController {
 			}
 			Order order = createOrder.create(cart, postal); //PayPal with a buyer account fills in shipping details
 			
-			//Order order = createOrder.create(cart, customer); //PayPal incorrectly fills in credit-card billing with shipping
+			//Order order = createOrder.create(cart, customer); //PayPal fills credit-card billing with shipping
 
 			String id = order.id();
 
