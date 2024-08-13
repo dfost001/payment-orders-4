@@ -36,15 +36,12 @@ public class ErrorDetailBean {
 		
 		detail.setExceptionClass(ex.getClass());		
 				
-		detail.setErrMessage(ex.getMessage());
-		
-		detail.setErrMessage(ex.getMessage());		
-		
-        List<ErrorDetail> list = new ArrayList<>();
+		detail.setErrMessage(ex.getMessage());      
 		
 		if(errMap.containsKey(localOrderId))
 			errMap.get(localOrderId).add(detail);
 		else {
+			List<ErrorDetail> list = new ArrayList<>();
 			list.add(detail);
 			errMap.put(localOrderId, list);
 		}			
@@ -59,18 +56,15 @@ public class ErrorDetailBean {
 		
 		ErrorDetail detail = initErrorDetail(order,localOrderId,errMethod, reason);
 		
-		detail.setErrMessage(errMessage);
-		
-        List<ErrorDetail> list = new ArrayList<>();
+		detail.setErrMessage(errMessage);      
 		
 		if(errMap.containsKey(localOrderId))
 			errMap.get(localOrderId).add(detail);
 		else {
+			List<ErrorDetail> list = new ArrayList<>();
 			list.add(detail);
 			errMap.put(localOrderId, list);
-		}			
-		
-		
+		}		
 	}
 	
 	private ErrorDetail initErrorDetail(
