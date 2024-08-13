@@ -83,7 +83,13 @@
 	                     Edit Ship To</a></label>
 	           </li>
 	       </c:if>
-	       
+	       <c:if test="${flowRequestContext.currentState.id eq 'ppStandardIntegration' }" >
+	          <li>
+	              <label style="margin-top:5px"><a href="${flowExecutionUrl}&_eventId=cancel" 
+	                     class="btn btn-default btn-sm">
+	                     Cancel</a></label>
+	           </li>
+	       </c:if>
 	           <li>
 	             <label><a href="${flowExecutionUrl}&_eventId=cart">
 	                     Cart</a></label>

@@ -148,8 +148,7 @@
           <evaluate expression="payPalClient.getClientId()"  result="viewScope.clientId" />                                   
        </on-entry>
        
-       <on-render>
-          <evaluate expression="webflowDebug.debugPrint(flowRequestContext, 'on-render')"  />                         
+       <on-render>                             
           <evaluate expression="webflowDebug.evalCartOnRender(flowRequestContext, cart, myFlowAttrs)" /> 
           <evaluate expression="evalApplicationState.evalState(flowRequestContext)" />  
           <evaluate expression="generateClientToken.generate()"  result="viewScope.clientToken"  />                
@@ -187,7 +186,8 @@
           <set name="externalContext.sessionMap.scriptId" value="requestParameters.paymentId" />
           <set name="externalContext.sessionMap.integrationType" value="'StandardCheckout'" />
        </transition>
-        <transition on="createPaymentError" to="errCheckoutException" />       
+       <transition on="createPaymentError" to="errCheckoutException" /> 
+       <transition on="cancel" to="paymentButtons" />        
    </view-state>
    
    <action-state id="getDetails">
