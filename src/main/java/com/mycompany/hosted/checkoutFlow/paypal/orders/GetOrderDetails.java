@@ -41,7 +41,7 @@ import org.springframework.webflow.execution.RequestContext;
 @Component
 public class GetOrderDetails  {
 	
-	 private boolean testRecoverableException = false;
+	 private boolean testRecoverableException = true;
 	 private boolean testPaymentSourceNullException = false;
 	 
 	 private String integrationType;
@@ -413,7 +413,7 @@ public class GetOrderDetails  {
 		
 		if(!errOnDetail)
 			compareRequestParamsToSessionCustomer(request, cardHolderName, streetAddress,
-					region, city, zip);
+					region, city, zip); //Throws IllegalArg
 		
         details.setBillingName(cardHolderName);
 		
@@ -459,9 +459,9 @@ public class GetOrderDetails  {
 		if(!region.trim().contentEquals(sesRegion.trim()))
 			err += "State " ;
 		if(!city.trim().contentEquals(sesCity.trim()))
-			err = "City ";
+			err += "City ";
 		if(!zip.trim().contentEquals(sesZip.trim()))
-			err = "PostalCode ";
+			err += "PostalCode ";
 		
 		if(!err.isEmpty()) {			
 		
