@@ -47,7 +47,7 @@ public class CaptureOrder {
 	@Autowired
 	private PayPalClient payClient;
 	
-	boolean testRecoverableException = false;
+	boolean testRecoverableException = true;
 	//boolean testCaptureId = false;
 	boolean testProcessorResponse = false; //see debugPrintProcessorOrThrow
 	boolean testFailedCvv = false; //see isFailedProcessorCode
@@ -83,7 +83,7 @@ public class CaptureOrder {
 		 
 		 try {
 		 
-		    evalDetails(details);	//throws to catch-block for null or empty resource id	
+		    evalDetails(details);	//throws to catch-block for null details or empty resource id	
 		
 		    if(testRecoverableException) {		 
 			 
