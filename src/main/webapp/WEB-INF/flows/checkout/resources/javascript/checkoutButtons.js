@@ -168,6 +168,21 @@ $(document).ready(function(){
 					
 			); //end submit		
 			    
+			    $("input[name='cardHolderName']").val(
+						 $("#card-holder-name").val().trim()); //Note:trim is important for GetDetails#compare, if testing rejected card
+						 $("input[name='streetAddress']").val(
+						 $("#card-billing-address-street").val());
+						 $("input[name='region']").val(
+						 $("#card-billing-address-state").val());
+						 $("input[name='postalCode']").val(
+						 $("#card-billing-address-zip").val());
+						 $("input[name='city']").val(
+						 $("#card-billing-address-city").val());
+						 $("input[name='countryCode']").val(
+						 $("#card-billing-address-country").val());		
+						 
+						 $("#myModal").modal("show");   
+			    
             } catch (e) { 
 				
 				//not working for a custom error thrown invalid/empty order id
@@ -176,22 +191,7 @@ $(document).ready(function(){
 				
 				return;
 										
-			}	           
-                          
-			 $("input[name='cardHolderName']").val(
-			 $("#card-holder-name").val().trim()); //Note:trim is important for GetDetails#compare, if testing rejected card
-			 $("input[name='streetAddress']").val(
-			 $("#card-billing-address-street").val());
-			 $("input[name='region']").val(
-			 $("#card-billing-address-state").val());
-			 $("input[name='postalCode']").val(
-			 $("#card-billing-address-zip").val());
-			 $("input[name='city']").val(
-			 $("#card-billing-address-city").val());
-			 $("input[name='countryCode']").val(
-			 $("#card-billing-address-country").val());		
-			 
-			 $("#myModal").modal("show");
+			}	                          
 			 
 		}); //end addEventListener
 	}; // end doSubmit	
