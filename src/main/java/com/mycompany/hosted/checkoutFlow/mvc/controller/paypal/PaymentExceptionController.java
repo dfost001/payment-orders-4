@@ -61,9 +61,9 @@ public class PaymentExceptionController {
 	  
 	  private final String FULLY_REFUNDED = "CAPTURE_FULLY_REFUNDED";
 		
-		private final String errRecoverable = "The payment service is temporarily unavailable. ";
+	  private final String errRecoverable = "The payment service is temporarily unavailable. ";
 				
-		private final String errFatal = "A non-recoverable error occurred.";		
+	  private final String errFatal = "A non-recoverable error occurred.";		
 		
 		@GetMapping(value="paymentException/initErrorModel")
 		public String  initModel(@RequestParam(WebFlowConstants.CHECKOUT_EXCEPTION_REQUEST_PARAM)
@@ -126,12 +126,13 @@ public class PaymentExceptionController {
 			
 			err.setMessage(ex.getMessage());
 			
-            Throwable cause = EhrLogger.getRootCause(ex.getCause());
+            Throwable cause = EhrLogger.getRootCause(ex);	
+            
+            if(cause == null)
+            	EhrLogger.throwIllegalArg(this.getClass(), "initErrorModel", 
+            			"CheckoutHttpException thrown without a cause.");
 			
-			 String exceptionName = cause != null ? cause.getClass().getCanonicalName()
-					: "No inner cause"; // Should always have a cause since exception is a wrapper
-			
-			err.setCause(exceptionName);	
+			err.setCause(cause.getClass().getCanonicalName());	
 			
 			if(ex.isTestException())
 				
@@ -195,6 +196,8 @@ public class PaymentExceptionController {
 	
 	private void setRecoverable(CheckoutErrModel model, Throwable cause, int httpStatus) {
 		
+		model.setRecoverable(false);
+		
 		switch (httpStatus) {
 		
 		case 503 :
@@ -206,14 +209,10 @@ public class PaymentExceptionController {
 			
 			if(cause != null && (ConnectException.class.isAssignableFrom(cause.getClass())
 					|| UnknownHostException.class.isAssignableFrom(cause.getClass())))
-				model.setRecoverable(true);			
-			
-			else model.setRecoverable(false) ; 
+				model.setRecoverable(true);					
 			break;
 			
-		default :
-			
-			model.setRecoverable(false); //IllegalArgument; status may be 200
+		default : //Any other status, model.recoverable set to false on enter		
 		
 		}
 		
@@ -281,7 +280,7 @@ public class PaymentExceptionController {
 		
 		ObjectMapper mapper = new ObjectMapper();
 		
-		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false); //All fields not defined by Java class 
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false); //All Json fields not defined by Java class 
 		
 		mapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE); //Json field to Java
 		
@@ -323,18 +322,26 @@ public class PaymentExceptionController {
 		  return value;	 
 		  
 	  }
-		
+	   /*
+	    * Only invoked	
+	    */
 	   private String evalRecoverableUrl(CheckoutErrModel errModel) {		   
 			
-			String url = "checkout-flow";
+			String url = "";
 			
 			if (errModel.isRecoverable()) {
 				
-				if( errModel.getErrMethod().contains("getOrder"))
+				url = "checkout-flow";
+				
+				if( errModel.getErrMethod().contains(GET_DETAILS))
 					url += "?" + ERR_GET_DETAIL + "=true" ;
 				
-				else if(errModel.getErrMethod().contains("capture"))
-					url += "?" + ERR_ON_CAPTURE + "=true" ;
+				else if(errModel.getErrMethod().contains(CAPTURE))
+					url += "?" + ERR_ON_CAPTURE + "=true" ;	
+				
+				else if(errModel.getErrMethod().contains(CREATE))
+					url = url ;		
+				
 			}			
 			
 			return url;
