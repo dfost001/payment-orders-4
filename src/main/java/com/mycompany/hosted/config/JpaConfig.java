@@ -27,7 +27,7 @@ public class JpaConfig {
 		return new PersistenceAnnotationBeanPostProcessor();
 	}
 	
-	private DataSource dataSourceLookup(String context) throws NamingException{
+   /*	private DataSource dataSourceLookup(String context) throws NamingException{
 		
 		InitialContext ctx = new InitialContext();
 		
@@ -35,7 +35,7 @@ public class JpaConfig {
 		
 		return source;
 		
-	}
+	}*/
 	
 	 public DataSource dataSourceMvcSample() {
 	        

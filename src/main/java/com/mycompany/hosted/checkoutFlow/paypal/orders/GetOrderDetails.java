@@ -41,7 +41,7 @@ import org.springframework.webflow.execution.RequestContext;
 @Component
 public class GetOrderDetails  {
 	
-	 private boolean testRecoverableException = true;
+	 private boolean testRecoverableException = false;
 	 private boolean testPaymentSourceNullException = false;
 	 
 	 private String integrationType;
@@ -60,9 +60,7 @@ public class GetOrderDetails  {
 		   
 		   OrderId orderId = null;
 		   
-		   HttpResponse<Order> response = null;
-		   
-		   
+		   HttpResponse<Order> response = null;		   
 		    
 		    try {
 		    	

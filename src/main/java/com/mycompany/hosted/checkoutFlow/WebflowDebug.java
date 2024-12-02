@@ -50,14 +50,14 @@ public class WebflowDebug {
 
 	} // end eval
 	
-    private void checkMvcCart(Cart cart, RequestContext ctx) {
-		
-		if(cart == null)
-			this.throwApplicationException("throwEmptyCart", "Cart passed to procedure is null.");
+    private void checkMvcCart(Cart cart, RequestContext ctx) {		
 		
 		Cart mvcCart = (Cart) ctx.getExternalContext().getSessionMap().get("cart");
-
-		if (!cart.equals(mvcCart)) {
+		
+		if(mvcCart == null)
+			this.throwApplicationException("throwEmptyCart", "Flow entered with a null MVC Cart");
+			
+		if (!mvcCart.equals(cart)) {
 
 			throwApplicationException("throwEmptyCart", "Webflow Cart does not point to cart in Http session");
 		}		
@@ -65,7 +65,8 @@ public class WebflowDebug {
 		List<CartItem> items = cart.getCartList();	
 		
 		if(items == null) {
-			throwApplicationException("throwEmptyCart", "Cart#getCartList returned a null");
+			throwApplicationException("throwEmptyCart", "Cart#getCartList returned a null. "
+					+ "Checkout requires an allocated list.");
 		}
 	}
 	
