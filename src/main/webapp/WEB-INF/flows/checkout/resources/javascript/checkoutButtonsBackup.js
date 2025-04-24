@@ -212,10 +212,7 @@ $(document).ready(function(){
 	        		  'content-type' : 'application/json',
 	        		  'accept': 'application/json'
 	        	  }
-	          }).then(function(res) {   
-	        	  
-	        	  if(!res.ok)
-	        		  throw new Error("Http Status is not OK");
+	          }).then(function(res) {        	  
 	        	  
 	        	  return res.json();
 	        	  
@@ -223,14 +220,25 @@ $(document).ready(function(){
 	        	
 	        	    console.log("createOrder: "  + JSON.stringify(data)) ;	        	   
 	        	  
-	        	    $("input[name='paymentId']").val(data.id);	  
+	        	    if(data.id)	 {  
+	        	    
+	        	      $("input[name='paymentId']").val(data.id);	  
 	        	      
-	        	    return data.id;
-	          })
-	          .catch(function(error) {
-	        	  $("#myModalError").modal('show') ;
-	        	  throw error;
-	          });
+	        	    //  window.localStorage.setItem("idObtained", "true");
+	
+	       	          return data.id;
+	        	    }
+	        	    else {
+	        	    	
+	        	    	//window.localStorage.setItem("idObtained", "false");
+	        	    	
+	        	    	$("#myModalError").modal("show");	
+	        	    	
+	        	    	//throw new Error("Server did not return an Id"); --not working
+	        		   
+	        	    }
+	        	
+	           });	        
 	        },		       
             onError: function(err) {
             	

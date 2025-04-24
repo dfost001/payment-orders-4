@@ -8,6 +8,7 @@
 	  <div  style="display:none">     
 	       <h6 >Restore Failure: ${RESTORE_FAILURE}</h6>
 	       <h6> Error On GetDetails: ${ERR_GET_DETAIL}</h6>
+	       <h6> Error On Capture: ${ERR_ON_CAPTURE}</h6>
 	       <h6>Cart count: ${cart.count}</h6>	      
 	       <h6>flowExecutionUrl: ${flowExecutionUrl}</h6>
 	  </div>

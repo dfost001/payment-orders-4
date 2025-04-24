@@ -161,21 +161,17 @@
          <set name="flashScope.clientId" value="viewScope.clientId" />
        </transition>
        <transition on="editShipAddress" to="selectShipAddress" />
-       <transition on="cancel" to="selectShipAddress" />
-       
+       <transition on="cancel" to="selectShipAddress" />       
        <transition on="editBillingAddress" to="updateShipAddressSub">
            <set name="flashScope.postalAddress" value="externalContext.sessionMap.customer" />
            <evaluate
                   expression="myFlowAttrs.evalFormTitle(postalAddress)" /> 
-       </transition>
-       
-       <transition on="createPaymentError" to="errCheckoutException" />
-       
+       </transition>       
+       <transition on="createPaymentError" to="errCheckoutException" />       
        <transition on="reviewDetails" to="getDetails" >  
           <set name="externalContext.sessionMap.scriptId" value="requestParameters.paymentId" />
-           <set name="externalContext.sessionMap.integrationType" value="'AdvancedCheckout'" />
-       </transition>          
-   
+          <set name="externalContext.sessionMap.integrationType" value="'AdvancedCheckout'" />
+       </transition>    
    </view-state>
    
    <view-state id="ppStandardIntegration" view="paymentButtonsStandard.jsp">

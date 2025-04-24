@@ -116,7 +116,7 @@ public class EvalApplicationState {
 	        
 		case "selectShipAddress":
 			
-			 expectedOnEnter =  entryPaymentDetails == null;			
+			 expectedOnEnter =  entryPaymentDetails == null;				
 			 expectedOnRender =  currentPaymentDetails == null;	         
 	         break;
 	         
