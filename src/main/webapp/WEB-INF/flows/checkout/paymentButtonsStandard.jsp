@@ -27,7 +27,8 @@ and open the template in the editor.
    <script
 	  src="${pageContext.request.contextPath}/spring/resources/javascript/bootstrap.min.js"></script>   
 	  	  
-   <script src="https://www.paypal.com/sdk/js?client-id=${clientId}&commit=false&debug=false&components=buttons,funding-eligibility"></script>	  
+   <script id="myPpScript" 
+      src="https://www.paypal.com/sdk/js?client-id=${clientId}&commit=false&debug=false&components=buttons,funding-eligibility"></script>	  
  
    <script src="${pageContext.request.contextPath}/spring/resources/javascript/checkoutStandard.js"></script>
     <style>
@@ -52,6 +53,8 @@ and open the template in the editor.
      
       <jsp:include page="flowHeader.jsp"></jsp:include>
       
+      <input type="hidden" name="loginType" id="loginType" value="${loginType}" />
+      
       <form action="${flowExecutionUrl}" method="post">
       <div class="alert alert-danger" style="display:none;position:absolute;">
       
@@ -65,7 +68,9 @@ and open the template in the editor.
         
         <h2>Credit Card Details</h2>
         
-         <br/>         
+         <br/> 
+         
+         <div style="color:green; font-style: italic">Pay with your PayPal account or a credit-card. </div>        
 
          <div id="paypal-button-container"></div>
          

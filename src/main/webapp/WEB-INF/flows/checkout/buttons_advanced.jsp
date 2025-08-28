@@ -23,7 +23,7 @@
 	  src="${pageContext.request.contextPath}/spring/resources/javascript/bootstrap.min.js"></script>   
   <script
     src="https://www.paypal.com/sdk/js?components=buttons,hosted-fields,funding-eligibility&client-id=${clientId}&commit=false"
-   data-client-token="${clientToken}"></script> 
+   data-client-token="${clientToken}" ></script> 
   <script src="${pageContext.request.contextPath}/spring/resources/javascript/checkoutButtons.js"></script>
   
   <style>

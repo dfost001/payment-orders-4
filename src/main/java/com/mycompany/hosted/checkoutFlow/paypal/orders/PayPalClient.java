@@ -41,7 +41,7 @@ public class PayPalClient {
 		
         Properties properties = new Properties();
 		
-		InputStream is = this.getClass().getResourceAsStream("paypal-cred.properties") ;
+		InputStream is = this.getClass().getResourceAsStream("/paypal-cred.properties") ;
 		
 		try {
 		

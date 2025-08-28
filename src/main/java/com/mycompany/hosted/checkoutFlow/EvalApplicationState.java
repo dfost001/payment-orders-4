@@ -91,9 +91,7 @@ public class EvalApplicationState {
 		
 		boolean expectedOnRender = false;
 		
-		String detail = "";		
-		
-		String errDetailsView = "";
+		String detail = "";				
 		
 		String viewId = ctx.getCurrentState().getId();
 		
@@ -116,14 +114,17 @@ public class EvalApplicationState {
 	        
 		case "selectShipAddress":
 			
-			 expectedOnEnter =  entryPaymentDetails == null;				
-			 expectedOnRender =  currentPaymentDetails == null;	         
+			 expectedOnEnter =  entryPaymentDetails == null && entryCustomer == currentCustomer;				
+			 expectedOnRender =  currentPaymentDetails == null && entryCustomer == currentCustomer;	 
+			 detail = entryCustomer != currentCustomer ?
+			    		"Customer on-entry is not equal to current session. (Browser navigation into card-entry after an update) "
+		        		: ""; 
 	         break;
 	         
 		case "paymentButtons": 
 			
 			expectedOnEnter =  entrySelectedAddress != null
-			   && entryPaymentDetails == null;		
+			   && entryPaymentDetails == null && entryCustomer == currentCustomer;		
 	        expectedOnRender = currentSelectedAddress != null
 			   && currentPaymentDetails == null && entryCustomer == currentCustomer;	
 	        detail = entryCustomer != currentCustomer ?
@@ -133,37 +134,40 @@ public class EvalApplicationState {
 	        
 		case "addressView":
 			
-			 expectedOnEnter = this.entryPaymentDetails == null; 			
-			 expectedOnRender = entryCustomer == currentCustomer && currentPaymentDetails == null;
-			 //expectedOnRender = currentPaymentDetails == null;
+			 expectedOnEnter = entryCustomer == currentCustomer && this.entryPaymentDetails == null; 			
+			 expectedOnRender = entryCustomer == currentCustomer && currentPaymentDetails == null;			 
 	         detail = entryCustomer != currentCustomer ?
 		    		"Customer on-entry is not equal to current session. " : ""; //Copy not set into session until exited 
 	         break;
 	         
 		case "showDetails":  
 			
-            errDetailsView = PaymentObjectsValidator.validateDetailsBeforeCapture(this.entryPaymentDetails);				
+            detail = PaymentObjectsValidator.validateDetailsBeforeCapture(this.entryPaymentDetails);         
+           
 			
 			expectedOnEnter =  entrySelectedAddress != null				
 					&& entryPaymentDetails != null 					
-					&& errDetailsView.isEmpty();	
+					&& detail.isEmpty();	
 			
 			expectedOnRender = currentSelectedAddress != null
 					&& currentPaymentDetails != null ;	
 			
-            if(currentPaymentDetails != null) {
+		 /* Details validated on-entry: Should not be necessary to validate again */	
+			
+          /*  if(currentPaymentDetails != null) {
             	
             	String err = PaymentObjectsValidator.validateDetailsBeforeCapture(this.currentPaymentDetails);		
-                throwIfInvalidDetails(err);            	
-			}
-            
-            detail = currentPaymentDetails == null ? "Null Details - View entered after Capture completed. " 
-            		: "";	
+                throwIfInvalidDetails(err);
+               
+			} else {
+				 detail = "Browser navigation into Review Details after payment has completed. " ;
+			}  */          
+           
             break;
 		
 		}//end switch
 		
-        evalExpectedState(expectedOnEnter, "on-enter", viewId, errDetailsView);
+        evalExpectedState(expectedOnEnter, "on-enter", viewId, detail);
 		
 		evalExpectedState(expectedOnRender, "on-render", viewId, detail);
 		

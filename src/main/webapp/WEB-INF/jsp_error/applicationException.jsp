@@ -19,7 +19,8 @@
         <h4 class="plus" style="cursor:pointer">Technical Support</h4>
         <div style="display:none">
             <p>Exception Message: <c:out value="${exception.message}" escapeXml="false" /></p>
-            <p>Exception Class: ${exception.class.canonicalName} </p>
+            <p>Exception Class: ${exceptionName} </p>
+            <p>Root Cause: ${rootCause} </p>
             <p>Handler: ${handler}</p>
             <p>Exception Resolver: ${exceptionResolver}</p>
             <c:if test="${requestScope.checkoutErrModel ne null}">

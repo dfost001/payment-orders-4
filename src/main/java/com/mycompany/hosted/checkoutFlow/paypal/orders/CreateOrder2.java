@@ -11,9 +11,12 @@ import com.mycompany.hosted.cart.Cart;
 import com.mycompany.hosted.cart.CartItem;
 import com.mycompany.hosted.checkoutFlow.exceptions.CheckoutHttpException;
 import com.mycompany.hosted.checkoutFlow.exceptions.EndpointRuntimeReason;
+import com.mycompany.hosted.checkoutFlow.paypal.rest.OrderController;
 import com.mycompany.hosted.exception_handler.EhrLogger;
 import com.mycompany.hosted.mock.service.Book;
+import com.mycompany.hosted.model.Customer;
 import com.mycompany.hosted.model.PostalAddress;
+import com.mycompany.hosted.model.ShipAddress;
 import com.paypal.http.HttpResponse;
 import com.paypal.orders.AddressPortable;
 //import com.paypal.orders.AddressPortable;
@@ -36,7 +39,7 @@ public class CreateOrder2 {
 	
 	private final String description = "Hartley Book-Sellers";
 	
-	private final String softDescriptor = "Hartley-Books";
+	private final String softDescriptor = "Hartley-Books";	
 	
 	private String referenceId = "PUHF";	
 	
@@ -60,7 +63,8 @@ public class CreateOrder2 {
 	   *@return HttpResponse<Order> response received from API
 	   *@throws IOException Exceptions from API if any
 	   */
-	  public Order create(Cart cart, PostalAddress shipping) throws CheckoutHttpException {	
+	  public Order create(Cart cart, PostalAddress payPalFillingAddress, 
+			  String loginType) throws CheckoutHttpException {	
 		  
 		EhrLogger.consolePrint(this.getClass(), "create", "executing") ; 	
 		
@@ -75,10 +79,9 @@ public class CreateOrder2 {
 
 	    request.prefer("return=representation");   
 	    
-
-	    request.requestBody(buildRequestBody(cart, shipping));		    
-
 	    try {
+	    	
+	      request.requestBody(buildRequestBody(cart, payPalFillingAddress, loginType));	
 	    	
 	      response = payClient.client().execute(request);
 	      
@@ -125,14 +128,14 @@ public class CreateOrder2 {
 		throw ex; //Handled by ControllerAdvice
    }
 	
-	private OrderRequest buildRequestBody(Cart cart, PostalAddress shipping) {
+	private OrderRequest buildRequestBody(Cart cart, PostalAddress shipping, String loginType) {
 			
 			
 		    OrderRequest orderRequest = new OrderRequest();
 		    
 		    orderRequest.checkoutPaymentIntent("CAPTURE");		  
 		    
-		    orderRequest.applicationContext(initApplicationContext()); 	  
+		    orderRequest.applicationContext(initApplicationContext(loginType)); 	  
 		    
 		    PurchaseUnitRequest purchaseUnit =  initPurchaseUnit(cart, shipping);
 		    
@@ -145,21 +148,41 @@ public class CreateOrder2 {
 		    return orderRequest;
 	  }	
 
-	  private ApplicationContext initApplicationContext() {
+	  private ApplicationContext initApplicationContext(String loginType) {
+		  
+		  String landingPage = this.getLandingPage (loginType);
 		  
 		  ApplicationContext applicationContext = new ApplicationContext()
-			    	.brandName("Hartley Book-Sellers")
-			    	.landingPage("BILLING")
+				  
+			    	.brandName("Hartley Book-Sellers")			   
+			    	
 			        .shippingPreference("SET_PROVIDED_ADDRESS")	
-			    //    .landingPage("LOGIN")
+			        
+			        .landingPage(landingPage) //either LOGIN or BILLING
+			        
 			    //	.shippingPreference("NO_SHIPPING")
-			        .userAction("CONTINUE");
-			        //.returnUrl(returnUrl)
-			        //.cancelUrl(cancelUrl);
+			        
+			        .userAction("CONTINUE")
+		  
+			        .returnUrl(OrderController.applicationUrl)
+			        
+			        .cancelUrl(OrderController.applicationUrl);
 		  
 		  return applicationContext;
 		  
 	  }
+/*
+ * Fix: Refactor to a switch statement for clarity	  
+ */
+private String getLandingPage(String loginType)	  {
+	
+	if(loginType.contentEquals("payPal"))
+	   return "LOGIN"; //PayPal with a buyer account fills in shipping details
+	else if(loginType.contentEquals("advanced") || loginType.contentEquals("notEligible"))
+	   return "BILLING"	; 
+	return "BILLING";
+	
+}
 	  
 	  
  private PurchaseUnitRequest initPurchaseUnit(Cart cart, PostalAddress shipping) {	 

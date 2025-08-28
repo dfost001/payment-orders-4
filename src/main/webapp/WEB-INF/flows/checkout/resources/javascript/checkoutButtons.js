@@ -194,8 +194,11 @@ $(document).ready(function(){
 			}	                          
 			 
 		}); //end addEventListener
-	}; // end doSubmit	
+	}; // end doSubmit
 	
+	function getLoginType() {
+		return "advanced" ;
+	} //end loginType
 	
 	function doHostedFields() {		
 		
@@ -205,7 +208,7 @@ $(document).ready(function(){
 	    	    	
 	        createOrder: function() {        	 
 	        	
-	              return  fetch(contextPath() + '/spring/paypal/order/create', {
+	              return  fetch(contextPath() + '/spring/paypal/order/create/' + getLoginType(), {
 	        	  
 	        	  method: 'post',
 	        	  headers: {

@@ -156,9 +156,11 @@
        
        <transition on="payPalAccount" to="ppStandardIntegration">
          <set name="flashScope.clientId" value="viewScope.clientId" />
+         <set name="flashScope.loginType" value="'payPal'" />
        </transition>
         <transition on="notEligible" to="ppStandardIntegration">
          <set name="flashScope.clientId" value="viewScope.clientId" />
+         <set name="flashScope.loginType" value="'notEligible'" />
        </transition>
        <transition on="editShipAddress" to="selectShipAddress" />
        <transition on="cancel" to="selectShipAddress" />       
@@ -177,6 +179,7 @@
    <view-state id="ppStandardIntegration" view="paymentButtonsStandard.jsp">
        <on-entry>
           <set name="viewScope.clientId" value="flashScope.clientId" />
+          <set name="viewScope.loginType" value="flashScope.loginType" />
        </on-entry>
        <transition on="reviewDetails" to="getDetails" >  
           <set name="externalContext.sessionMap.scriptId" value="requestParameters.paymentId" />
@@ -214,7 +217,7 @@
    </view-state> 
    
    <action-state id="capturePayment" >      
-      <evaluate expression="captureOrder.capture(flowRequestContext)"  />  
+      <evaluate expression="captureOrder.payPalCapture(flowRequestContext)"  />  
       <transition on="success" to="persistOrder" />     
       <transition on="failed" to="paymentStatusFailed" />
       <transition on-exception="com.mycompany.hosted.checkoutFlow.exceptions.CheckoutHttpException"

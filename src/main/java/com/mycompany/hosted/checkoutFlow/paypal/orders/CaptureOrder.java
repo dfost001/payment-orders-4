@@ -16,8 +16,6 @@ import com.paypal.orders.PaymentCollection;
 
 import com.paypal.orders.ProcessorResponse;
 import com.paypal.orders.PurchaseUnit;
-//import com.paypal.orders.AddressPortable;
-//import com.paypal.orders.LinkDescription;
 import com.paypal.orders.Capture;
 
 import com.mycompany.hosted.checkoutFlow.PaymentObjectsValidator;
@@ -26,13 +24,11 @@ import com.mycompany.hosted.checkoutFlow.exceptions.CheckoutHttpException;
 import com.mycompany.hosted.checkoutFlow.exceptions.EndpointRuntimeReason;
 import com.mycompany.hosted.checkoutFlow.exceptions.ProcessorResponseNullException;
 import com.mycompany.hosted.checkoutFlow.mvc.controller.paypal.FailedPaymentStatusController;
-//import com.mycompany.hosted.checkoutFlow.mvc.controller.paypal.FailedPaymentStatusController;
 import com.mycompany.hosted.checkoutFlow.paypal.orders.PaymentDetails.CaptureStatusEnum;
 import com.mycompany.hosted.checkoutFlow.paypal.orders.PaymentDetails.FailedReasonEnum;
 import com.mycompany.hosted.checkoutFlow.paypal.orders.PaymentDetails.GetDetailsStatus;
 
 import com.mycompany.hosted.exception_handler.EhrLogger;
-//import com.paypal.orders.Payer;
 import com.paypal.http.HttpResponse;
 import com.paypal.http.exceptions.HttpException;
 
@@ -52,7 +48,7 @@ public class CaptureOrder {
 	boolean testProcessorResponse = false; //see debugPrintProcessorOrThrow
 	boolean testFailedCvv = false; //see isFailedProcessorCode
 	
-	private String capturedPaymentId;
+	//private String capturedPaymentId;
 	
 	private Capture capture;
 	
@@ -62,13 +58,13 @@ public class CaptureOrder {
 	
 	private void resetProperties(RequestContext request) {
 		
-		capturedPaymentId = "";
+		//capturedPaymentId = "";
 		capture = null;
 		integrationType = request.getExternalContext()
 				.getSessionMap().getString(WebFlowConstants.PAYPAL_INTEGRATION_TYPE);
 	}
 	
-	public String capture(RequestContext ctx) throws CheckoutHttpException  {		
+	public String payPalCapture(RequestContext ctx) throws CheckoutHttpException  {		
 		
 		 resetProperties(ctx);	//Reset module-level captureId
 		
@@ -92,9 +88,11 @@ public class CaptureOrder {
 		
 	        OrdersCaptureRequest request = new OrdersCaptureRequest(details.getPayPalResourceId());
 	    
-	        request.prefer("return=representation");	   
+	        request.prefer("return=representation");	
+	        
+	        OrderRequest orderRequest = new OrderRequest();
 	    
-	        request.requestBody(buildRequestBody());
+	        request.requestBody(orderRequest);
 	   
 	        response = payClient.client().execute(request); //throws IOException	    
 	       
@@ -121,7 +119,7 @@ public class CaptureOrder {
 			String payPalId = details == null ? null : details.getPayPalResourceId(); //Error on evalDetails()
 			httpEx.setPayPalId(payPalId);
 			
-			httpEx.setCapturedPaymentId(this.capturedPaymentId);
+			httpEx.setCapturedPaymentId(this.capture.id());
 		    	
 		    	ctx.getExternalContext()
 		    	   .getSessionMap()
@@ -153,9 +151,9 @@ public class CaptureOrder {
 		  
 	  }
 	
-	  private OrderRequest buildRequestBody() {
+	 /* private OrderRequest buildRequestBody() {
 	    return new OrderRequest();
-	  }
+	  }*/
 	  
 	  private void evalDetails(PaymentDetails details) {
 		  
@@ -216,9 +214,9 @@ public class CaptureOrder {
                this.throwIllegalArg("debugPrintOrder", err);	
 		   }
 		   
-		   this.capture = captures.get(0);
+		  this.capture = captures.get(0);
 		   
-		   this.capturedPaymentId = captures.get(0).id(); //Will throw for empty at initCaptureId()	
+		 //  this.capturedPaymentId = captures.get(0).id(); //Will throw for empty at initCaptureId()	
 			 
 		   err = new String();
 		   

@@ -46,11 +46,25 @@ $(document).ready(function(){
         return baseUrl;
 	}
 	
+	/*var getLoginType = function() {
+		const script = document.getElementById("myPpScript");
+		const loginType = script.getAttribute("login-type") ;
+		console.log("loginType = " + loginType) ;
+		return loginType;
+	}*/
+	
+	var getLoginType = function() {
+		const element = document.getElementById("loginType") ;
+		const loginType = element.value;
+		console.log("loginType = " + loginType) ;
+		return loginType;
+	}
+	
 	 try {
 	      paypal.Buttons({    	 
 	    	fundingSource: paypal.FUNDING.PAYPAL,	    	
 	        createOrder: function() {
-	          return fetch(contextPath() + '/spring/paypal/order/create', {
+	          return fetch(contextPath() + '/spring/paypal/order/create/' + getLoginType(), {
 	        	  
 	        	  method: 'post',
 	        	  headers: {

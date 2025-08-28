@@ -139,11 +139,12 @@ public class EhrLogger {
 		        System.out.println("EhrLogger#initModelAndView: message=" + ex.getMessage());
 		       
 		         mav.addObject("exception", ex);
+		         mav.addObject("exceptionName", ex.getClass().getCanonicalName());
 		         mav.addObject("url", url);
 		         mav.addObject("trace",trace);
 		         mav.addObject("messages", messages);
 		         mav.addObject("handler", handler);
-		         mav.addObject("rootCause", rootCause);
+		         mav.addObject("rootCause", rootCause.getClass().getCanonicalName());
 		         mav.addObject("exceptionResolver", resolver);
 		         mav.addObject("exceptionType", ex.getClass().getCanonicalName());
 	    	
