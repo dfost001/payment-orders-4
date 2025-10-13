@@ -59,7 +59,7 @@ public class WebFlowConstants {
     	
     	ServletContext sc = (ServletContext) requestCtx.getExternalContext().getNativeContext();
     	
-	    ErrorDetailBean errorDetailBean = (ErrorDetailBean) sc.getAttribute("errorDetailBean");
+	    ErrorDetailBean errorDetailBean = (ErrorDetailBean) sc.getAttribute(ERROR_DETAIL_BEAN);
 		
 		if(errorDetailBean == null) {			
 		

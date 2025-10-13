@@ -161,7 +161,7 @@ public class CaptureOrder {
 		  
 		  if(!err.isEmpty()) {	
 			  
-			 this.reason = EndpointRuntimeReason.CAPTURE_VALIDATE_DETAILS;
+			 this.reason = EndpointRuntimeReason.CAPTURE_VALIDATE_DETAILS_BEFORE;
 			 EhrLogger.throwIllegalArg(this.getClass(), "evalDetails", err);
 		  }
 	  }	
@@ -259,11 +259,17 @@ public class CaptureOrder {
 		     
 		  boolean isFailedProcessorResponse = isFailedProcessorCode(capture.processorResponse());		    	
 		      
-		  boolean isFailedCaptureStatus = !isValidCaptureStatus(details);      
+		  boolean isFailedCaptureStatus = !isValidCaptureStatus
+				  (CaptureStatusEnum.valueOf(capture.status()));  
+		  
+		  boolean isFailedOrderStatus = 
+			  order.status() == GetDetailsStatus.COMPLETED.name()? false : true;
 		      
 		  String status = "";
+		  
+		  //Coding all combinations
 		     
-		  if(!isFailedStatusDetails && !isFailedProcessorResponse)
+		/*  if(!isFailedStatusDetails && !isFailedProcessorResponse)
 			   
 		   	  if(!isFailedCaptureStatus)
 		    		  status = "success";
@@ -273,9 +279,15 @@ public class CaptureOrder {
 			   status = "failed"; //Successful Capture status with failed reason, evaluated at Controller
 		   
 		   else if(isFailedCaptureStatus)
-		       status = "failed"; //Failed Capture with failed reason
+		       status = "failed"; //Failed Capture with failed reason*/
+		  
+		  //Simplified
+		  if(!isFailedStatusDetails && !isFailedProcessorResponse
+				  && !isFailedCaptureStatus && !isFailedOrderStatus)
+			  status = "success";
+		  else status = "failed" ;
 		   
-		   return status;		
+		  return status;		
 	  }
 	  
 	  private void initPaymentDetails(Order order, PaymentDetails details, String json) {		 	
@@ -391,11 +403,9 @@ public class CaptureOrder {
 			return isError;
 	 }
 	 
-	 public static boolean isValidCaptureStatus(PaymentDetails details) {
+	 public static boolean isValidCaptureStatus(CaptureStatusEnum status) {
 			
-			boolean valid = false;
-			
-			CaptureStatusEnum status = details.getCaptureStatus();
+			boolean valid = false;			
 			
 			switch (status) {
 			case COMPLETED :
@@ -414,8 +424,7 @@ public class CaptureOrder {
 				
 			}
 			
-			return valid;
-			
+			return valid;			
 		}
 	  
 	 private boolean isNullOrEmpty(String value) {

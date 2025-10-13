@@ -14,7 +14,7 @@ import org.springframework.web.context.WebApplicationContext;
 import com.mycompany.hosted.checkoutFlow.WebFlowConstants;
 import com.mycompany.hosted.checkoutFlow.paypal.orders.CaptureOrder;
 import com.mycompany.hosted.checkoutFlow.paypal.orders.PaymentDetails;
-
+import com.mycompany.hosted.checkoutFlow.paypal.orders.PaymentDetails.CaptureStatusEnum;
 import com.mycompany.hosted.exception_handler.EhrLogger;
 import com.mycompany.hosted.exception_handler.MvcNavigationException;
 import com.mycompany.hosted.formatter.StringUtil;
@@ -229,18 +229,19 @@ public class FailedPaymentStatusController {
 	private void evalCaptureStatusOrThrow(PaymentDetails details, boolean cardValid) {
 		
 		if(errorOnGetDetails)
-			return;
+			return;	
+		
 		
 		//Check on CaptureOrder code
 		if(cardValid && details.getStatusReason() == null) {
 			
-			if(CaptureOrder.isValidCaptureStatus(details))
+			if(CaptureOrder.isValidCaptureStatus(details.getCaptureStatus()))
 					EhrLogger.throwIllegalArg(this.getClass(), "evalCaptureStatusOrThrow", 
 					"No failure reasons and a succcess CaptureStatus - Incorrect redirect to this controller. ");
 			
 			else messages.add(CARD_DECLINED_NO_REASON);
 			
-		} else if(CaptureOrder.isValidCaptureStatus(details)) { //One or both failed reason
+		} else if(CaptureOrder.isValidCaptureStatus(details.getCaptureStatus())) { //One or both failed reason
 			messages.add(STATUS_SUCCESS_WITH_FAILED_REASON);
 		}
 	}

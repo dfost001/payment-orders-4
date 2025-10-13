@@ -10,7 +10,7 @@ import com.paypal.orders.ProcessorResponse;
 @SuppressWarnings("serial")
 public class PaymentDetails implements Serializable{
 	
-	public enum CaptureStatusEnum {
+	public enum CaptureStatusEnum { //Status expected at CaptureOrder.java
 		COMPLETED, 
 		DECLINED, 
 		PARTIALLY_REFUNDED, 
@@ -19,7 +19,7 @@ public class PaymentDetails implements Serializable{
 		FAILED 
 	}
 	
-	public enum GetDetailsStatus {
+	public enum GetDetailsStatus { //Status expected at GetOrderDetails.java
 		CREATED, 
 		SAVED, 
 		APPROVED, 
@@ -68,9 +68,9 @@ public class PaymentDetails implements Serializable{
 	
 	private GetDetailsStatus createdStatus; //Order#Status at GetDetails, when order created
 	
-	private CaptureStatusEnum captureStatus; //Order#Status at Capture, same as created
+	private CaptureStatusEnum captureStatus; //Status contained in Capture.status()
 	
-	private GetDetailsStatus completionStatus; //Capture#Status contained by Capture transaction object
+	private GetDetailsStatus completionStatus; //Order#Status at CaptureOrder usually COMPLETED even if capture failed
 	
 	private FailedReasonEnum statusReason; //Capture#captureStatusDetails#reason - reason for failed Capture
 	
