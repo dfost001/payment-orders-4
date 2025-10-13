@@ -4,7 +4,7 @@ PayPal Advanced Integration
 
 
 
-\###Description:
+\### Description:
 
 
 
@@ -13,17 +13,17 @@ PayPal Advanced Integration
 
 
 
-\_Please use the URL below to interact with the application executing on a platform:\_
+\_\_Please use the URL below to interact with the application executing on a platform:\_\_
 
 
 
-* \_\_URL:\_\_ \[https://dinah-foster.com/payment-orders-4] (https://dinah-foster.com/payment-orders-4)
-* \_\_Machine Host:\_\_ EC2 Instance
-* \_\_Servlet Container:\_\_ Tomcat 8
-* \_\_Compiler:\_\_ Eclipse 2022
-* \_\_Persistence Provider\_\_: MySQL 8
-* \_\_ORM Provider:\_\_ Hibernate 4
-* \_\_MVC Framework:\_\_ Spring 4.3
+* **URL:** \[https://dinah-foster.com/payment-orders-4](https://dinah-foster.com/payment-orders-4)
+* **Machine Host:** EC2 Instance
+* **Servlet Container:** Tomcat 8
+* **Compiler**: Eclipse 2022
+* **Persistence Provider:** MySQL 8
+* **ORM Provider**: Hibernate 4
+* **MVC Framework:** Spring 4.3
 
 
 
