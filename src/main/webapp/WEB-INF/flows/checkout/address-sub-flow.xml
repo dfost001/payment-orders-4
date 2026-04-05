@@ -24,7 +24,7 @@
 	<view-state id="addressView" view="customerFormSub.jsp" model="address">
 	
 	    <on-entry>
-	       <evaluate expression="myFlowAttrs.removeViewScopeMessages(flowRequestContext)"/>	  
+	      <!--  <evaluate expression="myFlowAttrs.removeViewScopeMessages(flowRequestContext)"/> -->	  
 	       <evaluate expression="evalApplicationState.setViewScopeComparisonAttrs(flowRequestContext)" />   
 	       <evaluate expression="supportedValidationImpl.getStates()" result="flowScope.states" />	       
 	    </on-entry>	

@@ -99,6 +99,8 @@ public class ErrorDetailBean {
 	}
 /*
  * To do: Possibly by caller. If REFUND_ID_MISSING, NOT_RETRIEVABLE succeeds.
+ * To do: Clarify setting detail to null by making a different function that
+ * returns the Order.
  */
 	
    public ErrorDetail findMostRecentDetail(Integer orderId) {	  	 	 
@@ -112,7 +114,7 @@ public class ErrorDetailBean {
 	   switch (detail.getErrorDetailReason()) {
 				
 				case NOT_RETRIEVABLE_FOR_REFUND:
-					detail = null;
+					detail = null; //The order is null in Detail, but it may still be possible to retrieve
 				
 				case PERSIST_ORDER_ERR:				
 					

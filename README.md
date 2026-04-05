@@ -95,11 +95,11 @@ The checkout flow sequence requires a non-empty cart on entry. Within the flow, 
 
 
 
-**Syntax Notes:**
+**Syntax Notes:  <action-state>**
 
 
 
-* <**action-state**> Must contain at least one <**evaluate**>.
+* Must contain at least one <**evaluate**>.
 * The expression attribute is usually set to a method invocation on a Spring bean .
 * The method may return a String, Boolean, object or void. (Not Numbers)
 * To define the next state to execute a <**transition**> sub-element is defined directly after <**evaluate**>.
@@ -112,32 +112,33 @@ The checkout flow sequence requires a non-empty cart on entry. Within the flow, 
 
 **Feature**
 
-•	If no exception is thrown from the first state, the transition is to an action procedure that accesses session attributes
+\*If no exception is thrown from the first state, the transition is to an action procedure that accesses session attributes
 
-* This evaluation  allows the client to exit the flow and  re-enter without repetition.
+\*This evaluation  allows the client to exit the flow and  re-enter without repetition.
 
-•	Evaluation of the session at flow start will also transparently synchronize the view on a browser-navigation error.
+\*Evaluation of the session at flow start will also transparently synchronize the view on a browser-navigation error.
 
-•	The procedure returns the string value of enum corresponding to the current session state.
+\*The procedure returns the string value of enum corresponding to the current session state.
 
 * A series of transitions will execute one of the four views according to the enum-value.
+
 
 
 ```java
 
 <action-state id="evalPaymentState">       
        <evaluate expression="paymentStateAttrs.evalPaymentState(
-                   flowRequestContext, ERR\_GET\_DETAIL, ERR\_ON\_CAPTURE, myFlowAttrs)" />    
+                   flowRequestContext, ERR\\\\\\\_GET\\\\\\\_DETAIL, ERR\\\\\\\_ON\\\\\\\_CAPTURE, myFlowAttrs)" />    
                    
-       <transition on="ERR\_GET\_DETAIL"  to="getDetails" /> 
+       <transition on="ERR\\\\\\\_GET\\\\\\\_DETAIL"  to="getDetails" /> 
        
-       <transition on="ERR\_ON\_CAPTURE"   to="capturePayment"  />   
+       <transition on="ERR\\\\\\\_ON\\\\\\\_CAPTURE"   to="capturePayment"  />   
        
-       <transition on="DETAILS\_COMPLETED" to="showDetails" />    
+       <transition on="DETAILS\\\\\\\_COMPLETED" to="showDetails" />    
         
-       <transition on="SHIP\_SELECTED" to="paymentButtons" />
+       <transition on="SHIP\\\\\\\_SELECTED" to="paymentButtons" />
        
-        <transition on="LOGGED\_IN" to="selectShipAddress" />
+        <transition on="LOGGED\\\\\\\_IN" to="selectShipAddress" />
                     
        <transition on="NONE" to="login" />  
      </action-state>    
