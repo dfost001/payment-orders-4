@@ -8,5 +8,7 @@ scr/
 .metadata
 note*.*
 src/test/
+pom.xml
 
 
+/bin/
