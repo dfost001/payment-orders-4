@@ -79,8 +79,8 @@ public class GetOrderDetails  {
 		    
 		       if(!err.isEmpty()) {
 		    	   
-		    	this.reason = EndpointRuntimeReason.DETAILS_FIELDS_EMPTY;   
-		    	throw new IllegalArgumentException(err);
+		    	      this.reason = EndpointRuntimeReason.DETAILS_FIELDS_EMPTY;   
+		    	      throw new IllegalArgumentException(err);
 		       }
 		    
 		       initOrderDetails(paymentDetails,response, ctx, customer); //throws test PaymentSourceNullException              
@@ -143,10 +143,10 @@ public class GetOrderDetails  {
 	       if(integrationType.contentEquals
 	    		   (WebFlowConstants.IntegrationValue.AdvancedCheckout.name())) {
 	    	   
-	    	  compareAndInitPayerFromSession(paymentDetails, customer, ctx, 
+	    	       compareAndInitPayerFromSession(paymentDetails, customer, ctx, 
 	    			  flowAttrs.isErrorGetDetails()); //throws IllegalArgument
 	    	  
-	    	  flowAttrs.setErrorGetDetails(false);
+	    	       flowAttrs.setErrorGetDetails(false);
 	       }
 	       return orderId;
 		 

@@ -62,7 +62,7 @@ public class FailedPaymentStatusController {
 	private final String ADDRESS_ERR_MSG = "There is a problem with the Billing address. " +
 	  "Either the address does not match the card or a postal field (city, state, zip) is incorrect";
 	
-	private boolean errorOnGetDetails;
+	
 	
 	@GetMapping(value="/failedStatus/handle")
 	public String handleFailedStatus(HttpSession session, ModelMap model)
@@ -76,18 +76,26 @@ public class FailedPaymentStatusController {
 	
 		boolean cardValid = false;
 		
-		if(!(errorOnGetDetails = isGetDetailsError(details))) {
+		if(isGetDetailsErrorOrThrow(details)) {
 						
-		     cardValid = evalProcessorResponse(details, model);
+			 return prepareView(details, model, session);	
 		
 		}
+		
+		cardValid = evalProcessorResponse(details, model);
 		
 		if(details.getStatusReason() != null)
 			messages.add("Failed Capture Reason: " + details.getStatusReason().name());
 		
 		this.evalCaptureStatusOrThrow(details, cardValid);
 		
-		model.addAttribute(WebFlowConstants.PAYMENT_DETAILS, details);
+		 return prepareView(details, model, session);	
+		
+	}
+	
+	private String prepareView(PaymentDetails details, ModelMap model, HttpSession session) {
+		
+        model.addAttribute(WebFlowConstants.PAYMENT_DETAILS, details);
 		
 		model.addAttribute(MESSAGE_LIST_KEY, messages);
 		
@@ -99,7 +107,7 @@ public class FailedPaymentStatusController {
 	 * Returns if error occurred at Capture
 	 * Throws Runtime if createdStatus is Null or status indicates success
 	 */
-	private boolean isGetDetailsError(PaymentDetails details) {		
+	private boolean isGetDetailsErrorOrThrow(PaymentDetails details) {		
 		
 		
 		if(details.getCaptureTime() != null) 
@@ -228,11 +236,7 @@ public class FailedPaymentStatusController {
 		   messages.add(msg);
 	}
 	
-	private void evalCaptureStatusOrThrow(PaymentDetails details, boolean cardValid) {
-		
-		if(errorOnGetDetails)
-			return;	
-		
+	private void evalCaptureStatusOrThrow(PaymentDetails details, boolean cardValid) {		
 		
 		//Check on CaptureOrder code
 		if(cardValid && details.getStatusReason() == null) {
@@ -247,17 +251,6 @@ public class FailedPaymentStatusController {
 		/*else if(CaptureOrder.isValidCaptureStatus(details.getCaptureStatus())) { //One or both failed reason
 			messages.add(STATUS_SUCCESS_WITH_FAILED_REASON);
 		}*/
-	}
-	
-
- 
-  /*  private void debugPrintFailedReason(PaymentDetails details) {
-    	if(details.getStatusReason() != null)
-    		System.out.println(this.getClass().getName()
-    				+ ": Details#statusReason is null");
-    	else System.out.println(this.getClass().getName()
-				+ ": Details#statusReason is NOT null: "
-				+ details.getStatusReason().name());
-    } */
+	} 
 
 }//end class
