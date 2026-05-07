@@ -51,11 +51,13 @@ public class FailedPaymentStatusController {
 	private final String TRANSACT_NOT_PROCCESSED = "The transaction cannot be completed. Please contact " +
 	    "either the card-issuer or support: ";
 	
-	private final String CARD_DECLINED_NO_REASON = "Your card has been declined. No reason is assigned. Contact the issuer. " ;
+	private final String CAPTURE_STATUS_FAILED_NO_REASON = "Transaction status failed, " 
+			+ " but credit-card is valid and no failed reason. Contact the issuer.";	
 	
-	private final String STATUS_SUCCESS_WITH_FAILED_REASON = "Status SUCCESS With Failed Reason: " 
+	
+	/*private final String STATUS_SUCCESS_WITH_FAILED_REASON = "Status SUCCESS With Failed Reason: " 
 			+ "Transacted-State is not certain. " 
-			+ "Please contact the card-issuer. ";
+			+ "Please contact the card-issuer. ";*/
 	
 	private final String ADDRESS_ERR_MSG = "There is a problem with the Billing address. " +
 	  "Either the address does not match the card or a postal field (city, state, zip) is incorrect";
@@ -218,7 +220,7 @@ public class FailedPaymentStatusController {
 		case "0500" :
 		    msg = this.TRANSACT_NOT_PROCCESSED + "Card refused";
 		    break;
-		default:
+		default: //Any number other than "0000"
 			msg = this.TRANSACT_NOT_PROCCESSED;
 			break;		
 		}
@@ -239,11 +241,12 @@ public class FailedPaymentStatusController {
 					EhrLogger.throwIllegalArg(this.getClass(), "evalCaptureStatusOrThrow", 
 					"No failure reasons and a succcess CaptureStatus - Incorrect redirect to this controller. ");
 			
-			else messages.add(CARD_DECLINED_NO_REASON);
+			else messages.add(CAPTURE_STATUS_FAILED_NO_REASON );
 			
-		} else if(CaptureOrder.isValidCaptureStatus(details.getCaptureStatus())) { //One or both failed reason
+		} 
+		/*else if(CaptureOrder.isValidCaptureStatus(details.getCaptureStatus())) { //One or both failed reason
 			messages.add(STATUS_SUCCESS_WITH_FAILED_REASON);
-		}
+		}*/
 	}
 	
 

@@ -419,7 +419,7 @@ public class CaptureOrder {
 				valid = false;
 				break;
 			default:
-				EhrLogger.throwIllegalArg(FailedPaymentStatusController.class, "isValidCaptureStatus", 
+				EhrLogger.throwIllegalArg(CaptureOrder.class, "isValidCaptureStatus", 
 						"Unknown Capture Status value.");
 				
 			}
