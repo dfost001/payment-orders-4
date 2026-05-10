@@ -10,5 +10,8 @@ note*.*
 src/test/
 pom.xml
 
+#MySql Machine Specific
+/local-config/*
+
 
 /bin/
