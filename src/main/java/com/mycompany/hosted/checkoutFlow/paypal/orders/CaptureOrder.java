@@ -109,9 +109,9 @@ public class CaptureOrder {
 		} catch(IOException | RuntimeException | ProcessorResponseNullException e) {			
 			
 			if(e instanceof HttpException)
-	    		this.reason = EndpointRuntimeReason.CAPTURE_FAILED_HTTP_STATUS;
-	    	else if(e instanceof IOException)
-	    		this.reason = EndpointRuntimeReason.CAPTURE_EXECUTE_IO;
+	    		    this.reason = EndpointRuntimeReason.CAPTURE_FAILED_HTTP_STATUS;
+	      	else if(e instanceof IOException)
+	    		    this.reason = EndpointRuntimeReason.CAPTURE_EXECUTE_IO;
 			
 			CheckoutHttpException httpEx = EhrLogger.initCheckoutException(e,
 					"capture", response, reason);
@@ -260,7 +260,9 @@ public class CaptureOrder {
 		  boolean isFailedProcessorResponse = isFailedProcessorCode(capture.processorResponse());		    	
 		      
 		  boolean isFailedCaptureStatus = !isValidCaptureStatus
-				  (CaptureStatusEnum.valueOf(capture.status()));  
+				  (CaptureStatusEnum.valueOf(capture.status())); 
+		  
+		  //order.status - Outer-most status; may be "Completed even if Capture.status is "Declined"
 		  
 		  boolean isFailedOrderStatus = 
 			  order.status() == GetDetailsStatus.COMPLETED.name()? false : true;

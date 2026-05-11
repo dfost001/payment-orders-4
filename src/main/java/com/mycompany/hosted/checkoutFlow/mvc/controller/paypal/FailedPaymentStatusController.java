@@ -14,7 +14,6 @@ import org.springframework.web.context.WebApplicationContext;
 import com.mycompany.hosted.checkoutFlow.WebFlowConstants;
 import com.mycompany.hosted.checkoutFlow.paypal.orders.CaptureOrder;
 import com.mycompany.hosted.checkoutFlow.paypal.orders.PaymentDetails;
-import com.mycompany.hosted.checkoutFlow.paypal.orders.PaymentDetails.CaptureStatusEnum;
 import com.mycompany.hosted.exception_handler.EhrLogger;
 import com.mycompany.hosted.exception_handler.MvcNavigationException;
 import com.mycompany.hosted.formatter.StringUtil;
@@ -55,9 +54,9 @@ public class FailedPaymentStatusController {
 			+ " but credit-card is valid and no failed reason. Contact the issuer.";	
 	
 	
-	/*private final String STATUS_SUCCESS_WITH_FAILED_REASON = "Status SUCCESS With Failed Reason: " 
+	private final String STATUS_SUCCESS_WITH_FAILED_REASON = "Status SUCCESS With Failed Reason: " 
 			+ "Transacted-State is not certain. " 
-			+ "Please contact the card-issuer. ";*/
+			+ "Please contact the card-issuer. ";	
 	
 	private final String ADDRESS_ERR_MSG = "There is a problem with the Billing address. " +
 	  "Either the address does not match the card or a postal field (city, state, zip) is incorrect";
@@ -74,7 +73,6 @@ public class FailedPaymentStatusController {
 		if(details == null)
 			throw new MvcNavigationException();		
 	
-		boolean cardValid = false;
 		
 		if(isGetDetailsErrorOrThrow(details)) {
 						
@@ -82,7 +80,7 @@ public class FailedPaymentStatusController {
 		
 		}
 		
-		cardValid = evalProcessorResponse(details, model);
+		boolean cardValid = evalProcessorResponse(details, model);
 		
 		if(details.getStatusReason() != null)
 			messages.add("Failed Capture Reason: " + details.getStatusReason().name());
@@ -247,10 +245,9 @@ public class FailedPaymentStatusController {
 			
 			else messages.add(CAPTURE_STATUS_FAILED_NO_REASON );
 			
-		} 
-		/*else if(CaptureOrder.isValidCaptureStatus(details.getCaptureStatus())) { //One or both failed reason
+		} else if(CaptureOrder.isValidCaptureStatus(details.getCaptureStatus())) { //One or both failed reason
 			messages.add(STATUS_SUCCESS_WITH_FAILED_REASON);
-		}*/
+		}
 	} 
 
 }//end class
