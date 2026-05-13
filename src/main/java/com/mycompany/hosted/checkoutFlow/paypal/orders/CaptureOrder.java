@@ -43,7 +43,7 @@ public class CaptureOrder {
 	@Autowired
 	private PayPalClient payClient;
 	
-	boolean testRecoverableException = true;
+	boolean testRecoverableException = false;
 	//boolean testCaptureId = false;
 	boolean testProcessorResponse = false; //see debugPrintProcessorOrThrow
 	boolean testFailedCvv = false; //see isFailedProcessorCode
@@ -127,7 +127,7 @@ public class CaptureOrder {
 		    	
 		    	throw httpEx;
 		}
-	    
+		 
 	    return statusResult;	   
 	   
 	  }
@@ -256,39 +256,36 @@ public class CaptureOrder {
 		  initPaymentDetails(order, details, json);	
 		      
 		  boolean isFailedStatusDetails = initCaptureStatusDetails(details) ;			       
-		     
+		  /*EhrLogger.consolePrint(this.getClass(), "initCaptureId", 
+				  "isFailedStatusDetails =" + isFailedStatusDetails); */  
+		  
 		  boolean isFailedProcessorResponse = isFailedProcessorCode(capture.processorResponse());		    	
-		      
+		 /* EhrLogger.consolePrint(this.getClass(), "initCaptureId", 
+				  "isFailedProcessorCode =" + isFailedProcessorResponse);  */  
+		  
 		  boolean isFailedCaptureStatus = !isValidCaptureStatus
 				  (CaptureStatusEnum.valueOf(capture.status())); 
+		 /* EhrLogger.consolePrint(this.getClass(), "initCaptureId", 
+				  "isFailedCaptureStatus =" + isFailedCaptureStatus);*/
 		  
 		  //order.status - Outer-most status; may be "Completed even if Capture.status is "Declined"
 		  
-		  boolean isFailedOrderStatus = 
-			  order.status() == GetDetailsStatus.COMPLETED.name()? false : true;
+		 boolean isFailedOrderStatus = 
+			  order.status().contentEquals(GetDetailsStatus.COMPLETED.name())? false : true;		  
+		/*  EhrLogger.consolePrint(this.getClass(), "initCaptureId", 
+				  "isFailedOrderStatus =" + isFailedOrderStatus); */		  
 		      
-		  String status = "";
-		  
-		  //Coding all combinations
-		     
-		/*  if(!isFailedStatusDetails && !isFailedProcessorResponse)
-			   
-		   	  if(!isFailedCaptureStatus)
-		    		  status = "success";
-		   	  else status = "failed"; //Failed status with no reason is evaluated at Failed Controller
-		   
-		   else if(!isFailedCaptureStatus)  //else one or both failure reasons
-			   status = "failed"; //Successful Capture status with failed reason, evaluated at Controller
-		   
-		   else if(isFailedCaptureStatus)
-		       status = "failed"; //Failed Capture with failed reason*/
+		  String status = "";		 
 		  
 		  //Simplified
 		  if(!isFailedStatusDetails && !isFailedProcessorResponse
 				  && !isFailedCaptureStatus && !isFailedOrderStatus)
 			  status = "success";
 		  else status = "failed" ;
-		   
+		  
+		  EhrLogger.consolePrint(this.getClass(), "initCaptureId", 
+				  "Returning status =" + status);
+		  
 		  return status;		
 	  }
 	  
@@ -304,9 +301,7 @@ public class CaptureOrder {
 	      
 	      details.setProcessorResponse(capture.processorResponse());
 	      
-	      details.setCompletionStatus(GetDetailsStatus.valueOf(order.status()));
-	      
-	      EhrLogger.consolePrint(this.getClass(), "initPaymentDetails", "Returning successfully");
+	      details.setCompletionStatus(GetDetailsStatus.valueOf(order.status()));   
 		  
 	  }
 	  

@@ -49,7 +49,7 @@ public class CreateOrder2 {
 	
 	private boolean testIdNotAssigned = false;
 	
-	private boolean testFaultyRequest = true;
+	private boolean testFaultyRequest = false;
 	
 	@Autowired
 	private PayPalClient payClient;	
