@@ -9,6 +9,7 @@ scr/
 note*.*
 src/test/
 pom.xml
+pom - Copy.xml
 
 #MySql Machine Specific
 /local-config/*
